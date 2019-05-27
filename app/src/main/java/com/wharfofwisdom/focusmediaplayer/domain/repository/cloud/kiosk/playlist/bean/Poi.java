@@ -1,5 +1,5 @@
 
-package com.wharfofwisdom.focumediaplayer.domain.repository.cloud.kiosk.playlist.bean;
+package com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.kiosk.playlist.bean;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

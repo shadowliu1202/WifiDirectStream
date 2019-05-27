@@ -1,9 +1,9 @@
-package com.wharfofwisdom.focumediaplayer.domain.repository.cloud.kiosk;
+package com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.kiosk;
 
 import android.content.Context;
 
-import com.wharfofwisdom.focumediaplayer.BuildConfig;
 import com.wharfofwisdom.focumediaplayer.domain.repository.cloud.kiosk.playlist.BuildingService;
+import com.wharfofwisdom.focusmediaplayer.BuildConfig;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
