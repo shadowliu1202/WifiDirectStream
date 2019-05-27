@@ -1,8 +1,7 @@
-package com.wharfofwisdom.focumediaplayer.domain.repository.cloud.kiosk.playlist;
+package com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.kiosk.playlist;
 
-import com.wharfofwisdom.focumediaplayer.domain.repository.cloud.kiosk.playlist.bean.PlayListResponse;
+import com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.kiosk.playlist.bean.PlayListResponse;
 
-import java.util.Collection;
 import java.util.List;
 
 import io.reactivex.Single;

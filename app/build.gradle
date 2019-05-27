@@ -33,7 +33,7 @@ dependencies {
 
 //Player
 dependencies {
-    implementation 'com.google.android.exoplayer:exoplayer:2.9.5'
+    implementation 'com.google.android.exoplayer:exoplayer:2.10.1'
 }
 
 //Retrofit
