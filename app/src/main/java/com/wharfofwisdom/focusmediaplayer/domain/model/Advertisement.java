@@ -1,16 +1,14 @@
 package com.wharfofwisdom.focusmediaplayer.domain.model;
 
-import android.net.Uri;
-
 import com.google.auto.value.AutoValue;
 
 @AutoValue
 public abstract class Advertisement {
     public abstract String id();
 
-    public abstract String name();
+    public abstract int index();
 
-    public abstract Uri url();
+    public abstract Video video();
 
     public static Builder builder() {
         return new AutoValue_Advertisement.Builder();
@@ -20,9 +18,9 @@ public abstract class Advertisement {
     public abstract static class Builder {
         public abstract Builder id(String id);
 
-        public abstract Builder name(String name);
+        public abstract Builder video(Video video);
 
-        public abstract Builder url(Uri url);
+        public abstract Builder index(int index);
 
         public abstract Advertisement build();
     }
