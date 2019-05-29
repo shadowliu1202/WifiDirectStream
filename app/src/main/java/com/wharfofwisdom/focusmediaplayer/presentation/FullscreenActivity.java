@@ -1,6 +1,9 @@
 package com.wharfofwisdom.focusmediaplayer.presentation;
 
+import android.content.Context;
+import android.content.IntentFilter;
 import android.net.Uri;
+import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -23,6 +26,7 @@ import com.wharfofwisdom.focusmediaplayer.DownloadTracker;
 import com.wharfofwisdom.focusmediaplayer.R;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
+import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
 import com.wharfofwisdom.focusmediaplayer.presentation.service.DemoDownloadService;
 
 import java.util.ArrayList;
@@ -40,7 +44,11 @@ public class FullscreenActivity extends AppCompatActivity {
     private SimpleExoPlayer player;
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private ConcatenatingMediaSource concatenatedSource = new ConcatenatingMediaSource();
-    DownloadTracker downloadTracker;
+    private final IntentFilter intentFilter = new IntentFilter();
+    private DownloadTracker downloadTracker;
+    private WifiP2pManager.Channel mChannel;
+    private WifiP2pManager mManager;
+    private WifiP2PReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +85,35 @@ public class FullscreenActivity extends AppCompatActivity {
         } catch (IllegalStateException e) {
             DownloadService.startForeground(this, DemoDownloadService.class);
         }
+        initWifiP2P();
+        mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Log.d("Test", "onSuccess");
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Log.d("Test", "onFailure");
+            }
+        });
+    }
+
+    private void initWifiP2P() {
+        //  Indicates a change in the Wi-Fi P2P status.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+
+        // Indicates a change in the list of available peers.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+
+        // Indicates the state of Wi-Fi P2P connectivity has changed.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+
+        // Indicates this device's details have changed.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
+        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+        mChannel = mManager.initialize(this, getMainLooper(), null);
     }
 
     private Single<Video> download(final Advertisement advertisement) {
@@ -88,7 +125,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         /* customCacheKey= */ null,
                         Util.getUtf8Bytes(advertisement.video().name())),
                 /* foreground= */ false);
-        if(advertisement.id().equals("1")){
+        if (advertisement.id().equals("1")) {
             return Single.just(advertisement.video()).delay(5, TimeUnit.SECONDS);
         }
         return Single.just(advertisement.video());
@@ -127,6 +164,19 @@ public class FullscreenActivity extends AppCompatActivity {
                         .build())
                 .build());
         return advertisements;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        receiver = new WifiP2PReceiver(mChannel,mManager);
+        registerReceiver(receiver, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(receiver);
     }
 
     @Override
