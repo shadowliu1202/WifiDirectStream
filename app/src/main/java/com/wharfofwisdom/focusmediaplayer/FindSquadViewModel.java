@@ -30,12 +30,15 @@ public class FindSquadViewModel extends ViewModel {
 
     Single<Squad> decideSquad() {
         if (soldier.belongToSquad()) {
+            status.postValue("加入隊伍中...");
             return new SearchSquad(soldier.getSquadName(), repository).execute()
                     .flatMap(squad -> new JoinSquad(squad, soldier, repository).execute());
         }
         if (soldier.isLeader()) {
+            status.postValue("創建隊伍中...");
             return new CreateSquad(soldier, repository).execute();
         }
+        status.postValue("尋找隊伍中...");
         return new SearchSquad(repository).execute();
     }
 }
