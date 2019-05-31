@@ -35,7 +35,7 @@ public class WelcomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ActivityWelcomeBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_welcome);
-        soldier = CommandFactory.createSignaller(false, this);
+        soldier = CommandFactory.createSolider(false, this);
         WifiP2pManager mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         WifiP2pManager.Channel mChannel = mManager.initialize(this, getMainLooper(), null);
         repository = new P2PRepository(mManager, mChannel);

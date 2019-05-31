@@ -1,17 +1,7 @@
 package com.wharfofwisdom.focusmediaplayer.presentation;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.NetworkInfo;
 import android.net.Uri;
-import android.net.wifi.WpsInfo;
-import android.net.wifi.p2p.WifiP2pConfig;
-import android.net.wifi.p2p.WifiP2pDevice;
-import android.net.wifi.p2p.WifiP2pInfo;
-import android.net.wifi.p2p.WifiP2pManager;
-import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
-import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -35,15 +25,11 @@ import com.wharfofwisdom.focusmediaplayer.R;
 import com.wharfofwisdom.focusmediaplayer.demo.MessageService;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
-import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
 import com.wharfofwisdom.focusmediaplayer.presentation.service.DemoDownloadService;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Flowable;
@@ -56,12 +42,12 @@ public class FullscreenActivity extends AppCompatActivity {
     private SimpleExoPlayer player;
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private ConcatenatingMediaSource concatenatedSource = new ConcatenatingMediaSource();
-    private final IntentFilter intentFilter = new IntentFilter();
+    //    private final IntentFilter intentFilter = new IntentFilter();
     private DownloadTracker downloadTracker;
-    private WifiP2pManager.Channel mChannel;
-    private WifiP2pManager mManager;
-    private WifiP2PReceiver receiver;
-    WifiP2pDnsSdServiceRequest serviceRequest;
+    //    private WifiP2pManager.Channel mChannel;
+//    private WifiP2pManager mManager;
+//    private WifiP2PReceiver receiver;
+//    WifiP2pDnsSdServiceRequest serviceRequest;
     public static boolean isMaster = true;
 
     @Override
@@ -77,8 +63,8 @@ public class FullscreenActivity extends AppCompatActivity {
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         player = ExoPlayerFactory.newSimpleInstance(this);
         mContentView.setPlayer(player);
-        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-        mChannel = mManager.initialize(this, getMainLooper(), null);
+//        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+//        mChannel = mManager.initialize(this, getMainLooper(), null);
         downloadTracker = ((DemoApplication) getApplication()).getDownloadTracker();
 //        JsonObject object = new JsonObject();
 //        object.addProperty("limit", 1);
@@ -101,171 +87,23 @@ public class FullscreenActivity extends AppCompatActivity {
         } catch (IllegalStateException e) {
             DownloadService.startForeground(this, DemoDownloadService.class);
         }
-        //Start p2p Listener
-        initWifiP2P();
-        //Start the service to receive message
         startService(new Intent(this, MessageService.class));
-
-        if (isMaster) {
-            initMasterFocusMediaService(mManager, mChannel);
-            discoverPeers(mManager, mChannel);
-        } else {
-            addClientServiceListner(mManager, mChannel);
-            discoverFocusMediaService(mManager, mChannel);
-        }
     }
 
-    private void discoverPeers(WifiP2pManager mManager, WifiP2pManager.Channel mChannel) {
-        mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                Log.d("Test", "discoverPeers onSuccess");
-            }
+//    private void discoverPeers(WifiP2pManager mManager, WifiP2pManager.Channel mChannel) {
+//        mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
+//            @Override
+//            public void onSuccess() {
+//                Log.d("Test", "discoverPeers onSuccess");
+//            }
+//
+//            @Override
+//            public void onFailure(int reason) {
+//                Log.d("Test", "discoverPeers onFailure");
+//            }
+//        });
+//    }
 
-            @Override
-            public void onFailure(int reason) {
-                Log.d("Test", "discoverPeers onFailure");
-            }
-        });
-    }
-
-    private void addClientServiceListner(WifiP2pManager manager, WifiP2pManager.Channel channel) {
-        final HashMap<String, String> buddies = new HashMap<>();
-        //可获取其他servece广播的信息
-        /* Callback includes:
-         * fullDomain: full domain name: e.g "printer._ipp._tcp.local."
-         * record: TXT record dta as a map of key/value pairs.
-         * device: The device running the advertised service.
-         */
-        WifiP2pManager.DnsSdTxtRecordListener txtListener = (fullDomain, record, device) -> {
-            Log.d("Test", "DnsSdTxtRecord available -" + fullDomain + ":" + record.toString());
-            if (Objects.requireNonNull(record.get("host")).contains("小米")) {
-                connectService(device);
-            }
-            buddies.put(device.deviceAddress, record.get("buddyname"));
-        };
-        WifiP2pManager.DnsSdServiceResponseListener servListener = (instanceName, registrationType, resourceType) -> {
-            // Update the device name with the human-friendly version from
-            // the DnsTxtRecord, assuming one arrived.
-            resourceType.deviceName = buddies
-                    .containsKey(resourceType.deviceAddress) ? buddies
-                    .get(resourceType.deviceAddress) : resourceType.deviceName;
-
-            // Add to the custom adapter defined specifically for showing
-            // wifi devices.
-            Log.d("Test", "onBonjourServiceAvailable " + instanceName);
-        };
-
-        manager.setDnsSdResponseListeners(channel, servListener, txtListener);
-
-    }
-
-    private void connectService(WifiP2pDevice device) {
-        WifiP2pConfig config = new WifiP2pConfig();
-        config.deviceAddress = device.deviceAddress;
-        config.wps.setup = WpsInfo.PBC;
-        if (serviceRequest != null)
-            //连接时removeServiceRequest
-            mManager.removeServiceRequest(mChannel, serviceRequest, new WifiP2pManager.ActionListener() {
-                @Override
-                public void onSuccess() {
-
-                }
-
-                @Override
-                public void onFailure(int arg0) {
-                }
-            });
-
-        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
-
-            @Override
-            public void onSuccess() {
-                Log.d("Test", "Connecting to service");
-            }
-
-            @Override
-            public void onFailure(int errorCode) {
-                Log.d("Test", "Failed connecting to service");
-            }
-        });
-    }
-
-    private void discoverFocusMediaService(WifiP2pManager manager, WifiP2pManager.Channel channel) {
-        //必须先进行addServiceRequest才能进行查找
-        serviceRequest = WifiP2pDnsSdServiceRequest.newInstance();
-        manager.addServiceRequest(channel, serviceRequest, new WifiP2pManager.ActionListener() {
-
-            @Override
-            public void onSuccess() {
-                Log.d("Test", "Added service discovery request");
-            }
-
-            @Override
-            public void onFailure(int arg0) {
-                Log.d("Test", "Failed adding service discovery request");
-            }
-        });
-
-        manager.discoverServices(channel, new WifiP2pManager.ActionListener() {
-
-            @Override
-            public void onSuccess() {
-                Log.d("Test", "Service discovery initiated");
-            }
-
-            @Override
-            public void onFailure(int arg0) {
-                Log.d("Test", "Service discovery failed");
-
-            }
-        });
-
-    }
-
-    private void initMasterFocusMediaService(WifiP2pManager mManager, WifiP2pManager.Channel mChannel) {
-        Map<String, String> record = new HashMap<>();
-        record.put("host", "小米 mi");
-        record.put("buddyname", "John Doe" + (int) (Math.random() * 1000));
-        record.put("available", "visible");
-
-        // Service information.  Pass it an instance name, service type
-        // _protocol._transportlayer , and the map containing
-        // information other devices will want once they connect to this one.
-        WifiP2pDnsSdServiceInfo serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("_test", "_presence._tcp", record);
-
-        // Add the local service, sending the service info, network channel,
-        // and listener that will be used to indicate success or failure of
-        // the request.
-        mManager.addLocalService(mChannel, serviceInfo, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                // Command successful! Code isn't necessarily needed here,
-                // Unless you want to update the UI or add logging statements.
-                Log.d("Test", "addLocalService onSuccess");
-            }
-
-            @Override
-            public void onFailure(int arg0) {
-                // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
-                Log.d("Test", "addLocalService onFailure");
-            }
-        });
-    }
-
-    private void initWifiP2P() {
-        //  Indicates a change in the Wi-Fi P2P status.
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-
-        // Indicates a change in the list of available peers.
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-
-        // Indicates the state of Wi-Fi P2P connectivity has changed.
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-
-        // Indicates this device's details have changed.
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-    }
 
     private Single<Video> download(final Advertisement advertisement) {
         DownloadService.sendAddDownload(this, DemoDownloadService.class,
@@ -318,44 +156,6 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        receiver = new WifiP2PReceiver(mChannel, mManager, new WifiP2PReceiver.EventListener() {
-            @Override
-            public void onErrors(Throwable throwable) {
-
-            }
-
-            @Override
-            public void onPeersChanged(List<WifiP2pDevice> peers) {
-
-            }
-
-            @Override
-            public void onConnected(WifiP2pInfo p2pInfo, NetworkInfo networkInfo) {
-
-            }
-
-            @Override
-            public void onDisconnected() {
-
-            }
-
-            @Override
-            public void onInformation(String string) {
-
-            }
-        });
-        registerReceiver(receiver, intentFilter);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(receiver);
-    }
-
-    @Override
     protected void onDestroy() {
         super.onDestroy();
         compositeDisposable.dispose();
@@ -363,9 +163,7 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     private void playVideoFromCache(List<Video> playListResponses) {
-        Log.d("Test", "playVideoFromCache:" + playListResponses.size());
         DataSource.Factory dataSourceFactory = ((DemoApplication) getApplication()).buildDataSourceFactory();
-        // This is the MediaSource representing the media to be played.
         List<MediaSource> mediaSources = new ArrayList<>();
         for (Video playInfo : playListResponses) {
             mediaSources.add(new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(playInfo.url()));

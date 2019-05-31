@@ -1,11 +1,14 @@
 package com.wharfofwisdom.focusmediaplayer.domain.repository.p2p;
 
 import android.net.NetworkInfo;
+import android.net.wifi.WpsInfo;
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
-import android.util.Log;
+import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
+import android.net.wifi.p2p.nsd.WifiP2pServiceRequest;
 
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
@@ -18,12 +21,10 @@ import java.util.Map;
 
 import io.reactivex.Completable;
 import io.reactivex.Single;
-import io.reactivex.SingleEmitter;
-import io.reactivex.SingleOnSubscribe;
-import io.reactivex.functions.Action;
 import io.reactivex.subjects.PublishSubject;
 
 public class P2PRepository implements SquadRepository {
+    private static final String IdentityGroup = "focusmedia";
     private final WifiP2pManager mManager;
     private final WifiP2pManager.Channel mChannel;
     private final WifiP2PReceiver receiver;
@@ -71,9 +72,9 @@ public class P2PRepository implements SquadRepository {
         return Single.create(emitter -> {
             Map<String, String> record = new HashMap<>();
             record.put("GroupName", squad.name());
-            record.put("buddyname", "這是我的驗證密碼" + (int) (Math.random() * 1000));
+            record.put("buddyname", "John Doe" + (int) (Math.random() * 1000));
             record.put("available", "visible");
-            WifiP2pDnsSdServiceInfo serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("聯網機群組", "_presence._tcp", record);
+            WifiP2pDnsSdServiceInfo serviceInfo = WifiP2pDnsSdServiceInfo.newInstance(IdentityGroup, "_presence._tcp", record);
             mManager.addLocalService(mChannel, serviceInfo, new WifiP2pManager.ActionListener() {
                 @Override
                 public void onSuccess() {
@@ -96,27 +97,116 @@ public class P2PRepository implements SquadRepository {
 
     @Override
     public Single<Squad> createSquad(Soldier soldier) {
-        return createGroup().andThen(Single.create(emitter -> emitter.onSuccess(Squad.builder().name(soldier.getSquadName()).build())));
+        return createGroup(soldier);
     }
 
-    private Completable createGroup() {
+    private Single<Squad> createGroup(Soldier soldier) {
         return Completable.fromAction(() -> mManager.createGroup(mChannel, null))
-                .andThen(p2pInfoPublishSubject).flatMapCompletable(p2pInfo -> {
+                .andThen(p2pInfoPublishSubject)
+                .flatMapSingle(p2pInfo -> {
                     if (p2pInfo.groupFormed && p2pInfo.isGroupOwner) {
-                        return Completable.complete();
+                        return Single.just(Squad.builder()
+                                .leaderLocation(p2pInfo.groupOwnerAddress.getHostAddress())
+                                .name(soldier.getSquadName()).build());
                     }
-                    return Completable.error(new Exception("UnExpected Error"));
-                });
+                    return Single.error(new Exception("UnExpected Error"));
+                }).firstOrError();
     }
 
     @Override
     public Single<Squad> searchSquad() {
-        return Single.never();
+        WifiP2pServiceRequest serviceRequest = WifiP2pDnsSdServiceRequest.newInstance();
+        return clearServiceRequest().andThen(addServiceRequest(serviceRequest))
+                .andThen(discoverService())
+                .flatMap(v -> removeService(v, serviceRequest));
+    }
+
+    private Completable clearServiceRequest() {
+        return Completable.create(emitter -> mManager.clearServiceRequests(mChannel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                emitter.onComplete();
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                emitter.onError(new Exception(String.valueOf(reason)));
+            }
+        }));
+    }
+
+    private Completable addServiceRequest(WifiP2pServiceRequest serviceRequest) {
+        return Completable.create(emitter -> mManager.addServiceRequest(mChannel, serviceRequest, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                emitter.onComplete();
+            }
+
+            @Override
+            public void onFailure(int arg0) {
+                emitter.onError(new Exception(String.valueOf(arg0)));
+            }
+        }));
+    }
+
+    private Single<Squad> discoverService() {
+        return Single.create(emitter -> mManager.discoverServices(mChannel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                final HashMap<String, String> buddies = new HashMap<>();
+                WifiP2pManager.DnsSdTxtRecordListener txtListener = (fullDomain, record, device) -> {
+                    if (fullDomain.contains(IdentityGroup)) {
+                        emitter.onSuccess(Squad.builder().name(record.get("GroupName")).leaderLocation(device.deviceAddress).build());
+                    }
+                    buddies.put(device.deviceAddress, record.get("buddyname"));
+                };
+                WifiP2pManager.DnsSdServiceResponseListener servListener = (instanceName, registrationType, resourceType) ->
+                        resourceType.deviceName = buddies.containsKey(resourceType.deviceAddress) ? buddies.get(resourceType.deviceAddress) : resourceType.deviceName;
+                mManager.setDnsSdResponseListeners(mChannel, servListener, txtListener);
+            }
+
+            @Override
+            public void onFailure(int arg0) {
+                emitter.onError(new Exception(String.valueOf(arg0)));
+            }
+        }));
+    }
+
+    private Single<Squad> removeService(Squad squad, WifiP2pServiceRequest serviceRequest) {
+        return Single.create(emitter -> mManager.removeServiceRequest(mChannel, serviceRequest, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                emitter.onSuccess(squad);
+            }
+
+            @Override
+            public void onFailure(int arg0) {
+                emitter.onError(new Exception(String.valueOf(arg0)));
+            }
+        }));
+    }
+
+    private Completable connectService(Squad device) {
+        WifiP2pConfig config = new WifiP2pConfig();
+        config.deviceAddress = device.leaderLocation();
+        config.wps.setup = WpsInfo.PBC;
+        return Completable.create(emitter -> mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+
+            @Override
+            public void onSuccess() {
+                emitter.onComplete();
+            }
+
+            @Override
+            public void onFailure(int errorCode) {
+                emitter.onError(new Exception(String.valueOf(errorCode)));
+            }
+        }));
     }
 
     @Override
     public Single<Squad> joinSquad(Squad squad) {
-        return Single.never();
+        return connectService(squad).andThen(Single.just(squad));
     }
 
     public WifiP2PReceiver getReceiver() {

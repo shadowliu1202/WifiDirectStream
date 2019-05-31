@@ -13,6 +13,7 @@ import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
 
 import io.reactivex.Single;
+import io.reactivex.functions.Consumer;
 
 public class FindSquadViewModel extends ViewModel {
     private final MutableLiveData<String> status = new MutableLiveData<>();
@@ -44,6 +45,6 @@ public class FindSquadViewModel extends ViewModel {
             return new CreateSquad(soldier, repository).execute();
         }
         status.postValue("尋找隊伍中...");
-        return new SearchSquad(repository).execute();
+        return new SearchSquad(repository).execute().doOnSuccess(squad -> status.postValue("成功加入隊伍:" + squad.name()));
     }
 }

@@ -1,7 +1,6 @@
 package com.wharfofwisdom.focusmediaplayer.domain.interactor.command;
 
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
-import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 
 import io.reactivex.Single;
