@@ -22,7 +22,7 @@ public class CommandFactory {
     }
 
     @SuppressLint("HardwareIds")
-    public static String getLocalMacAddressFromWifiInfo(Context context) {
+    private static String getLocalMacAddressFromWifiInfo(Context context) {
         WifiManager wifi = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         WifiInfo winfo = wifi.getConnectionInfo();
         return TextUtils.isEmpty(winfo.getMacAddress()) ? "測試:團隊" : winfo.getMacAddress();

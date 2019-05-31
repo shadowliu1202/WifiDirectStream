@@ -27,8 +27,6 @@ import io.reactivex.disposables.CompositeDisposable;
 public class WelcomeActivity extends AppCompatActivity {
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private Soldier soldier;
-    private WifiP2pManager.Channel mChannel;
-    private WifiP2pManager mManager;
     private WifiP2PReceiver receiver;
     private P2PRepository repository;
     private final IntentFilter intentFilter = new IntentFilter();
@@ -38,8 +36,8 @@ public class WelcomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         ActivityWelcomeBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_welcome);
         soldier = CommandFactory.createSignaller(false, this);
-        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-        mChannel = mManager.initialize(this, getMainLooper(), null);
+        WifiP2pManager mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+        WifiP2pManager.Channel mChannel = mManager.initialize(this, getMainLooper(), null);
         repository = new P2PRepository(mManager, mChannel);
         receiver = repository.getReceiver();
         FindSquadViewModel findSquadViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
@@ -53,7 +51,7 @@ public class WelcomeActivity extends AppCompatActivity {
         binding.setViewModel(findSquadViewModel);
         binding.setLifecycleOwner(this);
         hideSystemUI();
-        compositeDisposable.add(findSquadViewModel.decideSquad()
+        compositeDisposable.add(findSquadViewModel.initializedSquad()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::startPlay, Throwable::printStackTrace));
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);

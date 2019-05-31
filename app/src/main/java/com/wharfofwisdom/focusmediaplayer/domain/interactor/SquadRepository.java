@@ -7,6 +7,8 @@ import io.reactivex.Single;
 
 public interface SquadRepository {
 
+    Single<Squad> announceSquad(Squad squadName);
+
     Single<Squad> searchSquad(String squadName);
 
     Single<Squad> createSquad(Soldier soldier);
