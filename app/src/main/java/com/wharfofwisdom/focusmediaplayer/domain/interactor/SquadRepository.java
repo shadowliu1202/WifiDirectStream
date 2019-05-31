@@ -4,7 +4,6 @@ import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 
 import io.reactivex.Single;
-import io.reactivex.SingleSource;
 
 public interface SquadRepository {
 

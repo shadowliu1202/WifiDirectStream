@@ -3,14 +3,15 @@ package com.wharfofwisdom.focusmediaplayer.presentation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -31,10 +32,7 @@ import com.google.android.exoplayer2.util.Util;
 import com.wharfofwisdom.focusmediaplayer.DemoApplication;
 import com.wharfofwisdom.focusmediaplayer.DownloadTracker;
 import com.wharfofwisdom.focusmediaplayer.R;
-import com.wharfofwisdom.focusmediaplayer.demo.ClientInit;
-import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
 import com.wharfofwisdom.focusmediaplayer.demo.MessageService;
-import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
@@ -322,7 +320,32 @@ public class FullscreenActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        receiver = new WifiP2PReceiver(mChannel, mManager);
+        receiver = new WifiP2PReceiver(mChannel, mManager, new WifiP2PReceiver.EventListener() {
+            @Override
+            public void onErrors(Throwable throwable) {
+
+            }
+
+            @Override
+            public void onPeersChanged(List<WifiP2pDevice> peers) {
+
+            }
+
+            @Override
+            public void onConnected(WifiP2pInfo p2pInfo, NetworkInfo networkInfo) {
+
+            }
+
+            @Override
+            public void onDisconnected() {
+
+            }
+
+            @Override
+            public void onInformation(String string) {
+
+            }
+        });
         registerReceiver(receiver, intentFilter);
     }
 
