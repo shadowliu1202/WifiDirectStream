@@ -4,6 +4,7 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
 import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
@@ -76,12 +77,9 @@ public class SendMessageServer extends AsyncTask<Message, Message, Message> {
     @Override
     protected void onProgressUpdate(Message... values) {
         super.onProgressUpdate(values);
-
 //		if(isActivityRunning(MainActivity.class)){
 //			ChatActivity.refreshList(values[0], isMine);
 //		}
-
-        Log.d("Test", "onProgressUpdate Server:" + values[0].getmText());
     }
 
     @Override

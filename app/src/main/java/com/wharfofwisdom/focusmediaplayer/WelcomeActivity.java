@@ -1,9 +1,14 @@
 package com.wharfofwisdom.focusmediaplayer;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.wifi.p2p.WifiP2pGroup;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -15,11 +20,20 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.wharfofwisdom.focusmediaplayer.databinding.ActivityWelcomeBinding;
+import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageClient;
+import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageServer;
+import com.wharfofwisdom.focusmediaplayer.demo.ClientInit;
+import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
+import com.wharfofwisdom.focusmediaplayer.demo.MessageService;
+import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CommandFactory;
+import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Signaller;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
+
+import java.net.InetAddress;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -30,14 +44,16 @@ public class WelcomeActivity extends AppCompatActivity {
     private WifiP2PReceiver receiver;
     private P2PRepository repository;
     private final IntentFilter intentFilter = new IntentFilter();
+    private WifiP2pManager mManager;
+    private WifiP2pManager.Channel mChannel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ActivityWelcomeBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_welcome);
         soldier = CommandFactory.createSolider(false, this);
-        WifiP2pManager mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-        WifiP2pManager.Channel mChannel = mManager.initialize(this, getMainLooper(), null);
+        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+        mChannel = mManager.initialize(this, getMainLooper(), null);
         repository = new P2PRepository(mManager, mChannel);
         receiver = repository.getReceiver();
         FindSquadViewModel findSquadViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
@@ -88,5 +104,25 @@ public class WelcomeActivity extends AppCompatActivity {
         Toast.makeText(this, "Find Squad" + squad.name(), Toast.LENGTH_LONG).show();
 //        startActivity(new Intent(this, FullscreenActivity.class));
 //        finish();
+        startService(new Intent(this, MessageService.class));
+        mManager.requestConnectionInfo(mChannel, info -> sendMessage(info.groupOwnerAddress));
+    }
+
+    public void sendMessage(InetAddress ownerAddress) {
+        if (soldier instanceof Signaller) {
+            ServerInit server = new ServerInit();
+            server.start();
+            Message mes = new Message(Message.TEXT_MESSAGE, "Welcome", null, "Owner");
+            mes.setUser_record("Owner");
+            Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
+            new SendMessageServer(this, true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+        } else {
+            ClientInit client = new ClientInit(ownerAddress);
+            client.start();
+            Message mes = new Message(Message.TEXT_MESSAGE, "Banjo", null, "Client");
+            mes.setUser_record("Client");
+            new SendMessageClient(this, ownerAddress).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+            Log.e("Test", "Message hydrated, start SendMessageClient AsyncTask");
+        }
     }
 }
