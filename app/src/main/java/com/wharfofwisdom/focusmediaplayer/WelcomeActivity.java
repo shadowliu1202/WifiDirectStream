@@ -1,6 +1,7 @@
 package com.wharfofwisdom.focusmediaplayer;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Build;
@@ -27,6 +28,7 @@ import com.wharfofwisdom.focusmediaplayer.domain.model.squad.message.Message;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.nearby.NearByRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
+import com.wharfofwisdom.focusmediaplayer.presentation.FullscreenActivity;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -68,24 +70,25 @@ public class WelcomeActivity extends AppCompatActivity {
         binding.setViewModel(findSquadViewModel);
         binding.setLifecycleOwner(this);
         hideSystemUI();
-        compositeDisposable.add(findSquadViewModel.initializedSquad()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::startPlay, Throwable::printStackTrace));
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-        nearByRepository.waitCommand().subscribe(message -> Toast.makeText(this, message.message(), Toast.LENGTH_SHORT).show(), Throwable::printStackTrace);
-        EditText etMessage = findViewById(R.id.et_message);
-        findViewById(R.id.btn_send).setOnClickListener(v -> {
-            if (squad != null) {
-                Log.d("Test", "Get" + squad.leaderLocation());
-                String value = etMessage.getText().toString();
-                Payload bytesPayload = Payload.fromBytes(new byte[]{0xa, 0xb, 0xc, 0xd});
-                bytesPayload = Payload.fromBytes(value.getBytes());
-                Nearby.getConnectionsClient(this).sendPayload(squad.leaderLocation(), bytesPayload);
-            }
-        });
+//        compositeDisposable.add(findSquadViewModel.initializedSquad()
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(this::startPlay, Throwable::printStackTrace));
+//        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+//        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+//        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+//        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+//        nearByRepository.waitCommand().subscribe(message -> Toast.makeText(this, message.message(), Toast.LENGTH_SHORT).show(), Throwable::printStackTrace);
+//        EditText etMessage = findViewById(R.id.et_message);
+//        findViewById(R.id.btn_send).setOnClickListener(v -> {
+//            if (squad != null) {
+//                Log.d("Test", "Get" + squad.leaderLocation());
+//                String value = etMessage.getText().toString();
+//                Payload bytesPayload = Payload.fromBytes(new byte[]{0xa, 0xb, 0xc, 0xd});
+//                bytesPayload = Payload.fromBytes(value.getBytes());
+//                Nearby.getConnectionsClient(this).sendPayload(squad.leaderLocation(), bytesPayload);
+//            }
+//        });
+        startActivity(new Intent(this, FullscreenActivity.class));
     }
 
     @Override

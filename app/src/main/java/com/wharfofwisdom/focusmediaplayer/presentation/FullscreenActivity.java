@@ -1,13 +1,11 @@
 package com.wharfofwisdom.focusmediaplayer.presentation;
 
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
+import androidx.annotation.MainThread;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.ViewModelProviders;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -22,20 +20,21 @@ import com.google.android.exoplayer2.util.Util;
 import com.wharfofwisdom.focusmediaplayer.DemoApplication;
 import com.wharfofwisdom.focusmediaplayer.DownloadTracker;
 import com.wharfofwisdom.focusmediaplayer.R;
-import com.wharfofwisdom.focusmediaplayer.demo.MessageService;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.video.DownloadVideoFile;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
+import com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.CloudRepository;
 import com.wharfofwisdom.focusmediaplayer.presentation.service.DemoDownloadService;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import io.reactivex.Flowable;
 import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.schedulers.Schedulers;
 
 public class FullscreenActivity extends AppCompatActivity {
 
@@ -65,29 +64,35 @@ public class FullscreenActivity extends AppCompatActivity {
         mContentView.setPlayer(player);
 //        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
 //        mChannel = mManager.initialize(this, getMainLooper(), null);
-        downloadTracker = ((DemoApplication) getApplication()).getDownloadTracker();
+//        downloadTracker = ((DemoApplication) getApplication()).getDownloadTracker();
 //        JsonObject object = new JsonObject();
 //        object.addProperty("limit", 1);
         //new KioskClient(this).getBuildingService().getPlayList("58bcf5d568ba196d0b19ad4e", object.toString()
 
-        AdvertisementViewModel viewModel = ViewModelProviders.of(this).get(AdvertisementViewModel.class);
-        viewModel.getPlayList().observe(this, this::playVideoFromCache);
-        compositeDisposable.add(Flowable.fromIterable(getAdvertisementList())
-                .subscribeOn(Schedulers.io())
-                .flatMap(advertisement -> {
-                    Log.d("Test", "Get:" + advertisement.video().name());
-                    if (downloadTracker.isDownloaded(advertisement.video().url())) {
-                        return Flowable.just(advertisement.video());
-                    }
-                    return download(advertisement).toFlowable();
-                }).subscribe(viewModel::addToPlayList, Throwable::printStackTrace));
+//        AdvertisementViewModel viewModel = ViewModelProviders.of(this).get(AdvertisementViewModel.class);
+//        viewModel.getPlayList().observe(this, this::playVideoFromCache);
+//        compositeDisposable.add(Flowable.fromIterable(getAdvertisementList())
+//                .subscribeOn(Schedulers.io())
+//                .flatMap(advertisement -> {
+//                    Log.d("Test", "Get:" + advertisement.video().name());
+//                    if (downloadTracker.isDownloaded(advertisement.video().url())) {
+//                        return Flowable.just(advertisement.video());
+//                    }
+//                    return download(advertisement).toFlowable();
+//                }).subscribe(viewModel::addToPlayList, Throwable::printStackTrace));
+//
+//        try {
+//            DownloadService.start(this, DemoDownloadService.class);
+//        } catch (IllegalStateException e) {
+//            DownloadService.startForeground(this, DemoDownloadService.class);
+//        }
+//        startService(new Intent(this, MessageService.class));
 
-        try {
-            DownloadService.start(this, DemoDownloadService.class);
-        } catch (IllegalStateException e) {
-            DownloadService.startForeground(this, DemoDownloadService.class);
-        }
-        startService(new Intent(this, MessageService.class));
+        compositeDisposable.add(new DownloadVideoFile(new CloudRepository(this), Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596928064-人生走馬燈篇.mp4"))
+                .execute()
+                .map(this::createVideoListFromLocal)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::playVideoFromCache, Throwable::printStackTrace));
     }
 
 //    private void discoverPeers(WifiP2pManager mManager, WifiP2pManager.Channel mChannel) {
@@ -118,6 +123,18 @@ public class FullscreenActivity extends AppCompatActivity {
             return Single.just(advertisement.video()).delay(5, TimeUnit.SECONDS);
         }
         return Single.just(advertisement.video());
+    }
+
+    private List<Video> createVideoListFromLocal(File file) {
+        List<Video> videos = new ArrayList<>();
+        videos.add(Video.builder()
+                .index(0)
+                .id("5915bd627ce91c3851f43c5e")
+                .name("人生走馬燈篇")
+                //.url(Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596928064-人生走馬燈篇.mp4"))
+                .url(Uri.fromFile(file))
+                .build());
+        return videos;
     }
 
 
@@ -162,6 +179,7 @@ public class FullscreenActivity extends AppCompatActivity {
         player.stop();
     }
 
+    @MainThread
     private void playVideoFromCache(List<Video> playListResponses) {
         DataSource.Factory dataSourceFactory = ((DemoApplication) getApplication()).buildDataSourceFactory();
         List<MediaSource> mediaSources = new ArrayList<>();
