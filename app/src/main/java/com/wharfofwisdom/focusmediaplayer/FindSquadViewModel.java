@@ -10,17 +10,15 @@ import com.wharfofwisdom.focusmediaplayer.domain.interactor.command.JoinSquad;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.command.SearchSquad;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
-import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
 
 import io.reactivex.Single;
-import io.reactivex.functions.Consumer;
 
 public class FindSquadViewModel extends ViewModel {
     private final MutableLiveData<String> status = new MutableLiveData<>();
     private final Soldier soldier;
     private final SquadRepository repository;
 
-    FindSquadViewModel(Soldier soldier, P2PRepository p2PRepository) {
+    FindSquadViewModel(Soldier soldier, SquadRepository p2PRepository) {
         this.soldier = soldier;
         status.postValue("系統初始化...");
         repository = p2PRepository;

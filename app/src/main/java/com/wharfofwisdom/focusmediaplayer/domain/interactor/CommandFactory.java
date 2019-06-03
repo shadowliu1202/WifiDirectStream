@@ -13,7 +13,7 @@ import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
 public class CommandFactory {
     public static Soldier createSolider(boolean hasSquad, Context context) {
         //TODO : Temp use to differ Signaller/Soldier
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
             return Signaller.createInstance(parseLastMac(getLocalMacAddressFromWifiInfo(context)));
         }
         return new Soldier();

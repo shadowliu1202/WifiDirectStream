@@ -1,15 +1,13 @@
 package com.wharfofwisdom.focusmediaplayer;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.wifi.p2p.WifiP2pGroup;
-import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
-import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -19,33 +17,35 @@ import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.google.android.gms.nearby.Nearby;
+import com.google.android.gms.nearby.connection.Payload;
 import com.wharfofwisdom.focusmediaplayer.databinding.ActivityWelcomeBinding;
-import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageClient;
-import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageServer;
-import com.wharfofwisdom.focusmediaplayer.demo.ClientInit;
-import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
-import com.wharfofwisdom.focusmediaplayer.demo.MessageService;
-import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CommandFactory;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Signaller;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
+import com.wharfofwisdom.focusmediaplayer.domain.model.squad.message.Message;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
+import com.wharfofwisdom.focusmediaplayer.domain.repository.nearby.NearByRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
 
-import java.net.InetAddress;
-
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Consumer;
 
 public class WelcomeActivity extends AppCompatActivity {
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private Soldier soldier;
     private WifiP2PReceiver receiver;
     private P2PRepository repository;
+    private NearByRepository nearByRepository;
     private final IntentFilter intentFilter = new IntentFilter();
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
+
+    //TODO : Test
+
+    private Squad squad;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,13 +55,14 @@ public class WelcomeActivity extends AppCompatActivity {
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
         repository = new P2PRepository(mManager, mChannel);
+        nearByRepository = new NearByRepository(this);
         receiver = repository.getReceiver();
         FindSquadViewModel findSquadViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
             @NonNull
             @Override
             @SuppressWarnings("unchecked")
             public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-                return (T) new FindSquadViewModel(soldier, repository);
+                return (T) new FindSquadViewModel(soldier, nearByRepository);
             }
         }).get(FindSquadViewModel.class);
         binding.setViewModel(findSquadViewModel);
@@ -74,6 +75,17 @@ public class WelcomeActivity extends AppCompatActivity {
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        nearByRepository.waitCommand().subscribe(message -> Toast.makeText(this, message.message(), Toast.LENGTH_SHORT).show(), Throwable::printStackTrace);
+        EditText etMessage = findViewById(R.id.et_message);
+        findViewById(R.id.btn_send).setOnClickListener(v -> {
+            if (squad != null) {
+                Log.d("Test", "Get" + squad.leaderLocation());
+                String value = etMessage.getText().toString();
+                Payload bytesPayload = Payload.fromBytes(new byte[]{0xa, 0xb, 0xc, 0xd});
+                bytesPayload = Payload.fromBytes(value.getBytes());
+                Nearby.getConnectionsClient(this).sendPayload(squad.leaderLocation(), bytesPayload);
+            }
+        });
     }
 
     @Override
@@ -101,28 +113,29 @@ public class WelcomeActivity extends AppCompatActivity {
     }
 
     private void startPlay(Squad squad) {
+        this.squad = squad;
         Toast.makeText(this, "Find Squad" + squad.name(), Toast.LENGTH_LONG).show();
 //        startActivity(new Intent(this, FullscreenActivity.class));
 //        finish();
-        startService(new Intent(this, MessageService.class));
-        mManager.requestConnectionInfo(mChannel, info -> sendMessage(info.groupOwnerAddress));
+        // startService(new Intent(this, MessageService.class));
+        //  mManager.requestConnectionInfo(mChannel, info -> sendMessage(info.groupOwnerAddress));
     }
 
-    public void sendMessage(InetAddress ownerAddress) {
-        if (soldier instanceof Signaller) {
-            ServerInit server = new ServerInit();
-            server.start();
-            Message mes = new Message(Message.TEXT_MESSAGE, "Welcome", null, "Owner");
-            mes.setUser_record("Owner");
-            Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
-            new SendMessageServer(this, true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
-        } else {
-            ClientInit client = new ClientInit(ownerAddress);
-            client.start();
-            Message mes = new Message(Message.TEXT_MESSAGE, "Banjo", null, "Client");
-            mes.setUser_record("Client");
-            new SendMessageClient(this, ownerAddress).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
-            Log.e("Test", "Message hydrated, start SendMessageClient AsyncTask");
-        }
-    }
+//    public void sendMessage(InetAddress ownerAddress) {
+//        if (soldier instanceof Signaller) {
+//            ServerInit server = new ServerInit();
+//            server.start();
+//            Message mes = new Message(Message.TEXT_MESSAGE, "Welcome", null, "Owner");
+//            mes.setUser_record("Owner");
+//            Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
+//            new SendMessageServer(this, true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+//        } else {
+//            ClientInit client = new ClientInit(ownerAddress);
+//            client.start();
+//            Message mes = new Message(Message.TEXT_MESSAGE, "Banjo", null, "Client");
+//            mes.setUser_record("Client");
+//            new SendMessageClient(this, ownerAddress).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+//            Log.e("Test", "Message hydrated, start SendMessageClient AsyncTask");
+//        }
+//    }
 }

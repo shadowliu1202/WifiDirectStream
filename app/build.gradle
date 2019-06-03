@@ -46,6 +46,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-reactivestreams:$lifecycle_version"
     testImplementation "androidx.arch.core:core-testing:2.0.1"
     annotationProcessor "androidx.lifecycle:lifecycle-compiler:$lifecycle_version"
+    implementation 'com.google.android.gms:play-services-nearby:16.0.0'
 
 }
 
