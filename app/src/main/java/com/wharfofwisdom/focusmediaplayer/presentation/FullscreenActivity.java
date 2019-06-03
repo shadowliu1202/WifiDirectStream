@@ -1,6 +1,11 @@
 package com.wharfofwisdom.focusmediaplayer.presentation;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
+import android.net.wifi.p2p.WifiP2pInfo;
+import android.net.wifi.p2p.WifiP2pManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,19 +27,23 @@ import com.google.android.exoplayer2.util.Util;
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.Payload;
 import com.wharfofwisdom.focusmediaplayer.DemoApplication;
-import com.wharfofwisdom.focusmediaplayer.DownloadTracker;
 import com.wharfofwisdom.focusmediaplayer.R;
 import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageClient;
 import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageServer;
 import com.wharfofwisdom.focusmediaplayer.demo.ClientInit;
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
+import com.wharfofwisdom.focusmediaplayer.demo.MessageService;
 import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.CommandFactory;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.video.DownloadVideoFile;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Signaller;
+import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.CloudRepository;
+import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
+import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
 import com.wharfofwisdom.focusmediaplayer.presentation.service.DemoDownloadService;
 
 import java.io.File;
@@ -56,15 +65,13 @@ public class FullscreenActivity extends AppCompatActivity {
     private SimpleExoPlayer player;
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private ConcatenatingMediaSource concatenatedSource = new ConcatenatingMediaSource();
-    //    private final IntentFilter intentFilter = new IntentFilter();
-    private DownloadTracker downloadTracker;
-    //    private WifiP2pManager.Channel mChannel;
-//    private WifiP2pManager mManager;
-//    private WifiP2PReceiver receiver;
-//    WifiP2pDnsSdServiceRequest serviceRequest;
+    private final IntentFilter intentFilter = new IntentFilter();
+    private WifiP2PReceiver receiver;
     public static boolean isMaster = true;
     private File file;
     private Squad squad;
+    private Soldier soldier;
+    private InetAddress ownerAddress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,12 +87,10 @@ public class FullscreenActivity extends AppCompatActivity {
         player = ExoPlayerFactory.newSimpleInstance(this);
         mContentView.setPlayer(player);
         squad = getIntent().getParcelableExtra(SQUAD_NAME);
-//        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-//        mChannel = mManager.initialize(this, getMainLooper(), null);
-//        downloadTracker = ((DemoApplication) getApplication()).getDownloadTracker();
-//        JsonObject object = new JsonObject();
-//        object.addProperty("limit", 1);
-        //new KioskClient(this).getBuildingService().getPlayList("58bcf5d568ba196d0b19ad4e", object.toString()
+        soldier = CommandFactory.createSolider(false, this);
+        P2PRepository repository = startP2PConnection(soldier, squad);
+        receiver = repository.getReceiver();
+
 
 //        AdvertisementViewModel viewModel = ViewModelProviders.of(this).get(AdvertisementViewModel.class);
 //        viewModel.getPlayList().observe(this, this::playVideoFromCache);
@@ -104,7 +109,7 @@ public class FullscreenActivity extends AppCompatActivity {
 //        } catch (IllegalStateException e) {
 //            DownloadService.startForeground(this, DemoDownloadService.class);
 //        }
-//        startService(new Intent(this, MessageService.class));
+        startService(new Intent(this, MessageService.class));
 
         compositeDisposable.add(new DownloadVideoFile(new CloudRepository(this), Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596984200-健檢篇.mp4"))
                 .execute()
@@ -112,45 +117,51 @@ public class FullscreenActivity extends AppCompatActivity {
                 .map(this::createVideoListFromLocal)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::playVideoFromCache, Throwable::printStackTrace));
-        findViewById(R.id.fb_send).setOnClickListener(v -> sendFile(squad.leaderLocation()));
+        findViewById(R.id.fb_send).setOnClickListener(v -> {
+            sendMessage(String.valueOf(Math.random() * 100), soldier.getClass().getName());
+        });
     }
 
-//    public void sendMessage(InetAddress ownerAddress) {
-//        if (soldier instanceof Signaller) {
+    private P2PRepository startP2PConnection(Soldier soldier, Squad squad) {
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        WifiP2pManager mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+        WifiP2pManager.Channel mChannel = mManager.initialize(this, getMainLooper(), null);
+        mManager.requestConnectionInfo(mChannel, info -> {
+            isMaster = info.isGroupOwner;
+            ownerAddress = info.groupOwnerAddress;
+            Log.d("test", "get:" + info.groupOwnerAddress + ":" + info.toString());
 //            ServerInit server = new ServerInit();
 //            server.start();
-//            Message mes = new Message(Message.TEXT_MESSAGE, "Welcome", null, "Owner");
-//            mes.setUser_record("Owner");
-//            Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
-//            new SendMessageServer(this, true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
-//        } else {
-//            ClientInit client = new ClientInit(ownerAddress);
-//            client.start();
-//            Message mes = new Message(Message.TEXT_MESSAGE, "Banjo", null, "Client");
-//            mes.setUser_record("Client");
-//            new SendMessageClient(this, ownerAddress).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
-//            Log.e("Test", "Message hydrated, start SendMessageClient AsyncTask");
-//        }
-//    }
+            ClientInit client = new ClientInit(info.groupOwnerAddress);
+            client.start();
+//            if (FullscreenActivity.this.soldier.isLeader()) {
+//
+//            } else {
+//
+//            }
+        });
+        return new P2PRepository(mManager, mChannel);
+    }
+
+    public void sendMessage(String message, String identity) {
+        if (soldier instanceof Signaller) {
+            Message mes = new Message(Message.TEXT_MESSAGE, "Welcome", null, "Owner");
+            mes.setUser_record("Owner");
+            Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
+            new SendMessageServer(this, true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+        } else {
+            Message mes = new Message(Message.TEXT_MESSAGE, "Banjo", null, "Client");
+            mes.setUser_record("Client");
+            Log.d("test", "sendMessage:" + ownerAddress);
+            new SendMessageClient(this, ownerAddress).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+            Log.e("Test", "Message hydrated, start SendMessageClient AsyncTask");
+        }
+    }
 
     private void sendFile(String toEndpointId) {
-        if (file != null) {
-            try {
-                // Construct a simple message mapping the ID of the file payload to the desired filename.
-                Payload filePayload = Payload.fromFile(file);
-                String filenameMessage = filePayload.getId() + ":" + file.getName();
-                Payload filenameBytesPayload = Payload.fromBytes(filenameMessage.getBytes(StandardCharsets.UTF_8));
-                Nearby.getConnectionsClient(this).sendPayload(toEndpointId, filenameBytesPayload);
-                Nearby.getConnectionsClient(this).sendPayload(toEndpointId, filePayload);/**/
-            } catch (FileNotFoundException e) {
-                Log.e("MyApp", "File not found", e);
-            }
-        }
-//        String value = "Download Video";
-//        Payload bytesPayload = Payload.fromBytes(new byte[]{0xa, 0xb, 0xc, 0xd});
-//        bytesPayload = Payload.fromBytes(value.getBytes());
-//        Nearby.getConnectionsClient(this).sendPayload(toEndpointId, bytesPayload);
-
 
     }
 
