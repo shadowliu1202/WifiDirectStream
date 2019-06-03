@@ -1,5 +1,6 @@
 package com.wharfofwisdom.focusmediaplayer.domain.repository.p2p;
 
+import android.content.Context;
 import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
@@ -14,6 +15,7 @@ import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.message.Message;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
+import com.wharfofwisdom.focusmediaplayer.domain.repository.nearby.NearByRepository;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
 
 import java.util.HashMap;
@@ -31,6 +33,7 @@ public class P2PRepository implements SquadRepository {
     private final WifiP2pManager.Channel mChannel;
     private final WifiP2PReceiver receiver;
     private PublishSubject<WifiP2pInfo> p2pInfoPublishSubject = PublishSubject.create();
+    private static P2PRepository p2PRepository;
 
     public P2PRepository(WifiP2pManager mManager, WifiP2pManager.Channel mChannel) {
         this.mManager = mManager;

@@ -1,7 +1,9 @@
 package com.wharfofwisdom.focusmediaplayer.presentation;
 
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.MainThread;
@@ -17,16 +19,28 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.gms.nearby.Nearby;
+import com.google.android.gms.nearby.connection.Payload;
 import com.wharfofwisdom.focusmediaplayer.DemoApplication;
 import com.wharfofwisdom.focusmediaplayer.DownloadTracker;
 import com.wharfofwisdom.focusmediaplayer.R;
+import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageClient;
+import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageServer;
+import com.wharfofwisdom.focusmediaplayer.demo.ClientInit;
+import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
+import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.video.DownloadVideoFile;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
+import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Signaller;
+import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.CloudRepository;
 import com.wharfofwisdom.focusmediaplayer.presentation.service.DemoDownloadService;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,6 +52,7 @@ import io.reactivex.disposables.CompositeDisposable;
 
 public class FullscreenActivity extends AppCompatActivity {
 
+    public static final String SQUAD_NAME = "SQUAD_NAME";
     private SimpleExoPlayer player;
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private ConcatenatingMediaSource concatenatedSource = new ConcatenatingMediaSource();
@@ -48,6 +63,8 @@ public class FullscreenActivity extends AppCompatActivity {
 //    private WifiP2PReceiver receiver;
 //    WifiP2pDnsSdServiceRequest serviceRequest;
     public static boolean isMaster = true;
+    private File file;
+    private Squad squad;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +79,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         player = ExoPlayerFactory.newSimpleInstance(this);
         mContentView.setPlayer(player);
+        squad = getIntent().getParcelableExtra(SQUAD_NAME);
 //        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
 //        mChannel = mManager.initialize(this, getMainLooper(), null);
 //        downloadTracker = ((DemoApplication) getApplication()).getDownloadTracker();
@@ -88,11 +106,52 @@ public class FullscreenActivity extends AppCompatActivity {
 //        }
 //        startService(new Intent(this, MessageService.class));
 
-        compositeDisposable.add(new DownloadVideoFile(new CloudRepository(this), Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596928064-人生走馬燈篇.mp4"))
+        compositeDisposable.add(new DownloadVideoFile(new CloudRepository(this), Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596984200-健檢篇.mp4"))
                 .execute()
+                .doOnSuccess(file -> this.file = file)
                 .map(this::createVideoListFromLocal)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::playVideoFromCache, Throwable::printStackTrace));
+        findViewById(R.id.fb_send).setOnClickListener(v -> sendFile(squad.leaderLocation()));
+    }
+
+//    public void sendMessage(InetAddress ownerAddress) {
+//        if (soldier instanceof Signaller) {
+//            ServerInit server = new ServerInit();
+//            server.start();
+//            Message mes = new Message(Message.TEXT_MESSAGE, "Welcome", null, "Owner");
+//            mes.setUser_record("Owner");
+//            Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
+//            new SendMessageServer(this, true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+//        } else {
+//            ClientInit client = new ClientInit(ownerAddress);
+//            client.start();
+//            Message mes = new Message(Message.TEXT_MESSAGE, "Banjo", null, "Client");
+//            mes.setUser_record("Client");
+//            new SendMessageClient(this, ownerAddress).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+//            Log.e("Test", "Message hydrated, start SendMessageClient AsyncTask");
+//        }
+//    }
+
+    private void sendFile(String toEndpointId) {
+        if (file != null) {
+            try {
+                // Construct a simple message mapping the ID of the file payload to the desired filename.
+                Payload filePayload = Payload.fromFile(file);
+                String filenameMessage = filePayload.getId() + ":" + file.getName();
+                Payload filenameBytesPayload = Payload.fromBytes(filenameMessage.getBytes(StandardCharsets.UTF_8));
+                Nearby.getConnectionsClient(this).sendPayload(toEndpointId, filenameBytesPayload);
+                Nearby.getConnectionsClient(this).sendPayload(toEndpointId, filePayload);/**/
+            } catch (FileNotFoundException e) {
+                Log.e("MyApp", "File not found", e);
+            }
+        }
+//        String value = "Download Video";
+//        Payload bytesPayload = Payload.fromBytes(new byte[]{0xa, 0xb, 0xc, 0xd});
+//        bytesPayload = Payload.fromBytes(value.getBytes());
+//        Nearby.getConnectionsClient(this).sendPayload(toEndpointId, bytesPayload);
+
+
     }
 
 //    private void discoverPeers(WifiP2pManager mManager, WifiP2pManager.Channel mChannel) {
@@ -129,8 +188,8 @@ public class FullscreenActivity extends AppCompatActivity {
         List<Video> videos = new ArrayList<>();
         videos.add(Video.builder()
                 .index(0)
-                .id("5915bd627ce91c3851f43c5e")
-                .name("人生走馬燈篇")
+                .id("5915bd7d7ce91c3851f43c5f")
+                .name("健檢篇")
                 //.url(Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596928064-人生走馬燈篇.mp4"))
                 .url(Uri.fromFile(file))
                 .build());

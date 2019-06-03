@@ -4,12 +4,14 @@ import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.collection.SimpleArrayMap;
 
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.AdvertisingOptions;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
 import com.google.android.gms.nearby.connection.ConnectionResolution;
+import com.google.android.gms.nearby.connection.ConnectionsClient;
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes;
 import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
 import com.google.android.gms.nearby.connection.DiscoveryOptions;
@@ -23,17 +25,33 @@ import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.message.Message;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.reactivex.subjects.ReplaySubject;
 
-public class NearByRepository implements SquadRepository {
-    private final Context context;
-    private final ReplaySubject<Message> commands = ReplaySubject.create();
 
-    public NearByRepository(Context context) {
-        this.context = context;
+public class NearByRepository implements SquadRepository {
+
+    private final ReplaySubject<Message> commands = ReplaySubject.create();
+    private static NearByRepository nearByRepository = null;
+    private final ConnectionsClient connectionsClient;
+    private final SimpleArrayMap<Long, Payload> incomingFilePayloads = new SimpleArrayMap<>();
+    private final SimpleArrayMap<Long, Payload> completedFilePayloads = new SimpleArrayMap<>();
+    private final SimpleArrayMap<Long, String> filePayloadFilenames = new SimpleArrayMap<>();
+
+    public static NearByRepository createInstance(Context context) {
+        if (nearByRepository == null) {
+            nearByRepository = new NearByRepository(context.getApplicationContext());
+        }
+        return nearByRepository;
+    }
+
+    private NearByRepository(Context context) {
+        connectionsClient = Nearby.getConnectionsClient(context);
     }
 
     @Override
@@ -43,7 +61,7 @@ public class NearByRepository implements SquadRepository {
 
     @Override
     public Single<Squad> announceSquad(Squad squadName) {
-        return Single.create(emitter -> Nearby.getConnectionsClient(context)
+        return Single.create(emitter -> connectionsClient
                 .startAdvertising(
                         /* endpointName= */ "Device A",
                         /* serviceId= */ "com.example.package_name",
@@ -51,18 +69,32 @@ public class NearByRepository implements SquadRepository {
                             @Override
                             public void onConnectionInitiated(@NonNull String endpointId, @NonNull ConnectionInfo connectionInfo) {
                                 emitter.onSuccess(Squad.builder().name(endpointId).leaderLocation(endpointId).build());
-                                Nearby.getConnectionsClient(context).acceptConnection(endpointId, new PayloadCallback() {
+                                connectionsClient.acceptConnection(endpointId, new PayloadCallback() {
                                     @Override
                                     public void onPayloadReceived(@NonNull String s, @NonNull Payload payload) {
-                                        byte[] receivedBytes = payload.asBytes();
-                                        String message = new String(receivedBytes);
-                                        Log.d("Test",s+":"+message);
-                                        commands.onNext(new NearByMessage(message));
+                                        if (payload.getType() == Payload.Type.BYTES) {
+                                            String payloadFilenameMessage = new String(payload.asBytes(), StandardCharsets.UTF_8);
+                                            Log.d("Test", s + ":" + payloadFilenameMessage);
+                                            commands.onNext(new NearByMessage(payloadFilenameMessage));
+                                            long payloadId = addPayloadFilename(payloadFilenameMessage);
+                                            processFilePayload(payloadId);
+                                        } else if (payload.getType() == Payload.Type.FILE) {
+                                            // Add this to our tracking map, so that we can retrieve the payload later.
+                                            incomingFilePayloads.put(payload.getId(), payload);
+                                        }
                                     }
 
                                     @Override
                                     public void onPayloadTransferUpdate(@NonNull String s, @NonNull PayloadTransferUpdate update) {
-                                        Log.d("Test", "onPayloadTransferUpdate" + update.getStatus());
+                                        if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+                                            long payloadId = update.getPayloadId();
+                                            Payload payload = incomingFilePayloads.remove(payloadId);
+                                            completedFilePayloads.put(payloadId, payload);
+                                            if (payload != null && payload.getType() == Payload.Type.FILE) {
+                                                File file = processFilePayload(payloadId);
+                                                commands.onNext(new NearByMessage(file));
+                                            }
+                                        }
                                     }
                                 });
                             }
@@ -79,9 +111,42 @@ public class NearByRepository implements SquadRepository {
                                 //commands.onError(new Exception(s));
                             }
                         },
-                        new AdvertisingOptions.Builder().setStrategy(Strategy.P2P_CLUSTER).build())
+                        new AdvertisingOptions.Builder().setStrategy(Strategy.P2P_STAR).build())
                 .addOnFailureListener(emitter::onError));
     }
+
+    /**
+     * Extracts the payloadId and filename from the message and stores it in the
+     * filePayloadFilenames map. The format is payloadId:filename.
+     */
+    private long addPayloadFilename(String payloadFilenameMessage) {
+        String[] parts = payloadFilenameMessage.split(":");
+        long payloadId = Long.parseLong(parts[0]);
+        String filename = parts[1];
+        filePayloadFilenames.put(payloadId, filename);
+        return payloadId;
+    }
+
+    private File processFilePayload(long payloadId) {
+        // BYTES and FILE could be received in any order, so we call when either the BYTES or the FILE
+        // payload is completely received. The file payload is considered complete only when both have
+        // been received.
+        Payload filePayload = completedFilePayloads.get(payloadId);
+        String filename = filePayloadFilenames.get(payloadId);
+        if (filePayload != null && filename != null) {
+            completedFilePayloads.remove(payloadId);
+            filePayloadFilenames.remove(payloadId);
+
+            // Get the received file (which will be in the Downloads folder)
+            File payloadFile = filePayload.asFile().asJavaFile();
+
+            // Rename the file.
+            payloadFile.renameTo(new File(payloadFile.getParentFile(), filename));
+            return payloadFile;
+        }
+        return null;
+    }
+
 
     @Override
     public Single<Squad> searchSquad(String squadName) {
@@ -96,8 +161,8 @@ public class NearByRepository implements SquadRepository {
     @Override
     public Single<Squad> searchSquad() {
         return Single.create(emitter -> {
-            DiscoveryOptions discoveryOptions = new DiscoveryOptions.Builder().setStrategy(Strategy.P2P_CLUSTER).build();
-            Nearby.getConnectionsClient(context).startDiscovery("com.example.package_name", new EndpointDiscoveryCallback() {
+            DiscoveryOptions discoveryOptions = new DiscoveryOptions.Builder().setStrategy(Strategy.P2P_STAR).build();
+            connectionsClient.startDiscovery("com.example.package_name", new EndpointDiscoveryCallback() {
                 @Override
                 public void onEndpointFound(@NonNull String endpointId, @NonNull DiscoveredEndpointInfo discoveredEndpointInfo) {
                     // An endpoint was found. We request a connection to it.
@@ -115,20 +180,38 @@ public class NearByRepository implements SquadRepository {
 
     @Override
     public Single<Squad> joinSquad(Squad squad) {
-        return Single.create(emitter -> Nearby.getConnectionsClient(context)
+        return Single.create(emitter -> connectionsClient
                 .requestConnection("test", squad.leaderLocation(), new ConnectionLifecycleCallback() {
                     @Override
                     public void onConnectionInitiated(@NonNull String endpointId, @NonNull ConnectionInfo connectionInfo) {
-                        Nearby.getConnectionsClient(context).acceptConnection(endpointId, new PayloadCallback() {
+                        connectionsClient.acceptConnection(endpointId, new PayloadCallback() {
                             @Override
                             public void onPayloadReceived(@NonNull String s, @NonNull Payload payload) {
-                                byte[] receivedBytes = payload.asBytes();
-                                commands.onNext(new NearByMessage(new String(receivedBytes)));
+                                if (payload.getType() == Payload.Type.BYTES) {
+                                    String payloadFilenameMessage = new String(payload.asBytes(), StandardCharsets.UTF_8);
+                                    Log.d("Test", s + ":" + payloadFilenameMessage);
+                                    commands.onNext(new NearByMessage(payloadFilenameMessage));
+                                    long payloadId = addPayloadFilename(payloadFilenameMessage);
+                                    processFilePayload(payloadId);
+                                } else if (payload.getType() == Payload.Type.FILE) {
+                                    Log.d("Test", s + ":" + "Payload.Type.FILE");
+                                    // Add this to our tracking map, so that we can retrieve the payload later.
+                                    incomingFilePayloads.put(payload.getId(), payload);
+                                }
                             }
 
                             @Override
                             public void onPayloadTransferUpdate(@NonNull String s, @NonNull PayloadTransferUpdate update) {
-                                Log.d("Test", "onPayloadTransferUpdate" + update.getStatus());
+                                if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+                                    Log.d("test", "PayloadTransferUpdate.Status.SUCCESS");
+                                    long payloadId = update.getPayloadId();
+                                    Payload payload = incomingFilePayloads.remove(payloadId);
+                                    completedFilePayloads.put(payloadId, payload);
+                                    if (payload != null && payload.getType() == Payload.Type.FILE) {
+                                        File file = processFilePayload(payloadId);
+                                        commands.onNext(new NearByMessage(file));
+                                    }
+                                }
                             }
                         });
                     }

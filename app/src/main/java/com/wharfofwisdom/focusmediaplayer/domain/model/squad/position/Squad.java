@@ -1,9 +1,11 @@
 package com.wharfofwisdom.focusmediaplayer.domain.model.squad.position;
 
+import android.os.Parcelable;
+
 import com.google.auto.value.AutoValue;
 
 @AutoValue
-public abstract class Squad {
+public abstract class Squad implements Parcelable {
     public abstract String name();
 
     public abstract String leaderLocation();
