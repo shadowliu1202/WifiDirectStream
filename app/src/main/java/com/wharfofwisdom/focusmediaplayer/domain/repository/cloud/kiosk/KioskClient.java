@@ -3,6 +3,7 @@ package com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.kiosk;
 import android.content.Context;
 
 import com.wharfofwisdom.focusmediaplayer.BuildConfig;
+import com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.kiosk.file.FileService;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.kiosk.playlist.BuildingService;
 
 import java.io.File;
@@ -60,4 +61,9 @@ public class KioskClient {
     public BuildingService getBuildingService() {
         return retrofit.create(BuildingService.class);
     }
+
+    public FileService getFileService() {
+        return retrofit.create(FileService.class);
+    }
+
 }
