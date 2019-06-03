@@ -31,6 +31,7 @@ import com.wharfofwisdom.focusmediaplayer.R;
 import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageClient;
 import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageServer;
 import com.wharfofwisdom.focusmediaplayer.demo.ClientInit;
+import com.wharfofwisdom.focusmediaplayer.demo.Entities.MediaFile;
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
 import com.wharfofwisdom.focusmediaplayer.demo.MessageService;
 import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
@@ -88,29 +89,9 @@ public class FullscreenActivity extends AppCompatActivity {
         mContentView.setPlayer(player);
         squad = getIntent().getParcelableExtra(SQUAD_NAME);
         soldier = CommandFactory.createSolider(false, this);
-        P2PRepository repository = startP2PConnection(soldier, squad);
+        P2PRepository repository = startP2PConnection();
         receiver = repository.getReceiver();
-
-
-//        AdvertisementViewModel viewModel = ViewModelProviders.of(this).get(AdvertisementViewModel.class);
-//        viewModel.getPlayList().observe(this, this::playVideoFromCache);
-//        compositeDisposable.add(Flowable.fromIterable(getAdvertisementList())
-//                .subscribeOn(Schedulers.io())
-//                .flatMap(advertisement -> {
-//                    Log.d("Test", "Get:" + advertisement.video().name());
-//                    if (downloadTracker.isDownloaded(advertisement.video().url())) {
-//                        return Flowable.just(advertisement.video());
-//                    }
-//                    return download(advertisement).toFlowable();
-//                }).subscribe(viewModel::addToPlayList, Throwable::printStackTrace));
-//
-//        try {
-//            DownloadService.start(this, DemoDownloadService.class);
-//        } catch (IllegalStateException e) {
-//            DownloadService.startForeground(this, DemoDownloadService.class);
-//        }
         startService(new Intent(this, MessageService.class));
-
         compositeDisposable.add(new DownloadVideoFile(new CloudRepository(this), Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596984200-健檢篇.mp4"))
                 .execute()
                 .doOnSuccess(file -> this.file = file)
@@ -118,11 +99,11 @@ public class FullscreenActivity extends AppCompatActivity {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::playVideoFromCache, Throwable::printStackTrace));
         findViewById(R.id.fb_send).setOnClickListener(v -> {
-            sendMessage(String.valueOf(Math.random() * 100), soldier.getClass().getName());
+            sendFile(file);
         });
     }
 
-    private P2PRepository startP2PConnection(Soldier soldier, Squad squad) {
+    private P2PRepository startP2PConnection() {
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
@@ -133,15 +114,13 @@ public class FullscreenActivity extends AppCompatActivity {
             isMaster = info.isGroupOwner;
             ownerAddress = info.groupOwnerAddress;
             Log.d("test", "get:" + info.groupOwnerAddress + ":" + info.toString());
-//            ServerInit server = new ServerInit();
-//            server.start();
-            ClientInit client = new ClientInit(info.groupOwnerAddress);
-            client.start();
-//            if (FullscreenActivity.this.soldier.isLeader()) {
-//
-//            } else {
-//
-//            }
+            if (info.isGroupOwner) {
+                ServerInit server = new ServerInit();
+                server.start();
+            } else {
+                ClientInit client = new ClientInit(info.groupOwnerAddress);
+                client.start();
+            }
         });
         return new P2PRepository(mManager, mChannel);
     }
@@ -161,24 +140,16 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
 
-    private void sendFile(String toEndpointId) {
-
+    private void sendFile(File file) {
+        Message mes = new Message(Message.FILE_MESSAGE, "test", null, "Owner");
+        MediaFile mediaFile = new MediaFile(this, file.getPath(), Message.FILE_MESSAGE);
+        mes.setByteArray(mediaFile.fileToByteArray());
+        mes.setFileName(mediaFile.getFileName());
+        if (isMaster) {
+            Log.e("test", "Message hydrated, start SendMessageServer AsyncTask");
+            new SendMessageServer(this, true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+        }
     }
-
-//    private void discoverPeers(WifiP2pManager mManager, WifiP2pManager.Channel mChannel) {
-//        mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
-//            @Override
-//            public void onSuccess() {
-//                Log.d("Test", "discoverPeers onSuccess");
-//            }
-//
-//            @Override
-//            public void onFailure(int reason) {
-//                Log.d("Test", "discoverPeers onFailure");
-//            }
-//        });
-//    }
-
 
     private Single<Video> download(final Advertisement advertisement) {
         DownloadService.sendAddDownload(this, DemoDownloadService.class,
@@ -261,5 +232,24 @@ public class FullscreenActivity extends AppCompatActivity {
         player.prepare(concatenatedSource);
         player.setPlayWhenReady(true);
     }
+
+
+    //        AdvertisementViewModel viewModel = ViewModelProviders.of(this).get(AdvertisementViewModel.class);
+//        viewModel.getPlayList().observe(this, this::playVideoFromCache);
+//        compositeDisposable.add(Flowable.fromIterable(getAdvertisementList())
+//                .subscribeOn(Schedulers.io())
+//                .flatMap(advertisement -> {
+//                    Log.d("Test", "Get:" + advertisement.video().name());
+//                    if (downloadTracker.isDownloaded(advertisement.video().url())) {
+//                        return Flowable.just(advertisement.video());
+//                    }
+//                    return download(advertisement).toFlowable();
+//                }).subscribe(viewModel::addToPlayList, Throwable::printStackTrace));
+//
+//        try {
+//            DownloadService.start(this, DemoDownloadService.class);
+//        } catch (IllegalStateException e) {
+//            DownloadService.startForeground(this, DemoDownloadService.class);
+//        }
 
 }

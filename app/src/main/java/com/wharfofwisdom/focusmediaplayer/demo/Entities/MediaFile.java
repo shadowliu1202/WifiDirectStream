@@ -8,6 +8,8 @@ import android.util.Log;
 
 //import org.apache.commons.io.IOUtils;
 
+import com.google.android.gms.common.util.IOUtils;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -31,16 +33,16 @@ public class MediaFile {
 	public byte[] fileToByteArray(){
 		Log.v(TAG, "Convert media file to byte array");
 		FileInputStream input;
-//		try {
-//			input = new FileInputStream(file);
-//			byte[] array = IOUtils.toByteArray(input);
-//			Log.v(TAG, "Convert media file to byte array DONE !");
-//			return array;
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
+		try {
+			input = new FileInputStream(file);
+			byte[] array = IOUtils.toByteArray(input);
+			Log.v(TAG, "Convert media file to byte array DONE !");
+			return array;
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		return null;
 	}
 	

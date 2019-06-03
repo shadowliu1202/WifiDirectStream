@@ -13,6 +13,9 @@ import com.wharfofwisdom.focusmediaplayer.presentation.FullscreenActivity;
 
 public class MessageService extends Service {
     private static final String TAG = "MessageService";
+    public interface IOwnerService {
+        void changeOwner(boolean isOwner);
+    }
 
     @Override
     public IBinder onBind(Intent arg0) {

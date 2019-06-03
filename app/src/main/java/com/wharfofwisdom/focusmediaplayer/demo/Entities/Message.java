@@ -84,7 +84,7 @@ public class Message implements Serializable {
 				filePath = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES).getAbsolutePath()+"/"+fileName;
 				break;
 			case Message.FILE_MESSAGE:
-				filePath = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath()+"/"+fileName;
+				filePath = context.getExternalFilesDir(Environment.DIRECTORY_MUSIC).getAbsolutePath()+"/"+fileName;
 				break;
 			case Message.DRAWING_MESSAGE:
 				filePath = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES).getAbsolutePath()+"/"+fileName;
@@ -102,7 +102,7 @@ public class Message implements Serializable {
 
 			fos.write(byteArray);
 			fos.close();
-			Log.v(TAG, "Write byte array to file DONE !");
+			Log.v(TAG, "Write byte array to file DONE !:"+file.getPath());
 		}
 		catch (java.io.IOException e) {
 			e.printStackTrace();

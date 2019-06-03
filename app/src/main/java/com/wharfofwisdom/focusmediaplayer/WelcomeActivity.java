@@ -54,6 +54,7 @@ public class WelcomeActivity extends AppCompatActivity {
                 .subscribe(this::startPlay, Throwable::printStackTrace));
     }
 
+    //TODO
     private P2PRepository initP2P() {
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
