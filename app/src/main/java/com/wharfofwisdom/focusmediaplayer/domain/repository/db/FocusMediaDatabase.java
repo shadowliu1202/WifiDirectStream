@@ -8,8 +8,9 @@ import androidx.room.RoomDatabase;
 
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.dao.AdvertisementDao;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.entity.AdEntity;
+import com.wharfofwisdom.focusmediaplayer.domain.repository.db.entity.VideoEntity;
 
-@Database(entities = {AdEntity.class}, version = 1, exportSchema = false)
+@Database(entities = {AdEntity.class, VideoEntity.class}, version = 1, exportSchema = false)
 public abstract class FocusMediaDatabase extends RoomDatabase {
     private static FocusMediaDatabase INSTANCE;
 

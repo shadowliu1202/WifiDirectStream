@@ -6,6 +6,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.AdvertisementRepository;
+import com.wharfofwisdom.focusmediaplayer.domain.repository.db.RoomRepository;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -16,13 +18,20 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
 
+import io.reactivex.Completable;
+import io.reactivex.Scheduler;
+import io.reactivex.functions.Action;
+import io.reactivex.schedulers.Schedulers;
+
 public class ReceiveMessageClient extends AbstractReceiver {
     private static final int SERVER_PORT = 4446;
     private Context mContext;
     private ServerSocket socket;
+    private AdvertisementRepository repository;
 
     public ReceiveMessageClient(Context context) {
         mContext = context;
+        repository = new RoomRepository(context);
     }
 
     @Override
@@ -66,10 +75,14 @@ public class ReceiveMessageClient extends AbstractReceiver {
         int type = values[0].getmType();
         if (type == Message.AUDIO_MESSAGE || type == Message.VIDEO_MESSAGE || type == Message.FILE_MESSAGE || type == Message.DRAWING_MESSAGE) {
             File file = values[0].saveByteArrayToFile(mContext);
+            repository.addVideoCache(file, values[0].getChatName(), values[0].getFileName())
+                    .subscribeOn(Schedulers.io())
+                    .subscribe();
         }
-
         Toast.makeText(mContext, values[0].getmText(), Toast.LENGTH_SHORT).show();
         Log.e("Test", "onProgressUpdate Client Receive" + values[0].getmText());
+        Log.e("Test", "onProgressUpdate Client Receive" + values[0].getChatName());
+        Log.e("Test", "onProgressUpdate Client Receive" + values[0].getFileName());
     }
 
     @SuppressWarnings("rawtypes")

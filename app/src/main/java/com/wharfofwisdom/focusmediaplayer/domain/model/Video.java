@@ -8,6 +8,8 @@ import com.google.auto.value.AutoValue;
 
 @AutoValue
 public abstract class Video {
+    public static final Video DEFAULT = Video.builder().id("").index(0).name("").url(Uri.EMPTY).build();
+
     public abstract String id();
 
     public abstract String name();

@@ -32,6 +32,7 @@ import com.wharfofwisdom.focusmediaplayer.demo.Entities.MediaFile;
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
 import com.wharfofwisdom.focusmediaplayer.demo.MessageService;
 import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.AdvertisementRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CommandFactory;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.DownloadVideoFile;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.GetLoadedAdvertisements;
@@ -53,9 +54,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Scheduler;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Action;
 import io.reactivex.schedulers.Schedulers;
 
 public class FullscreenActivity extends AppCompatActivity {
@@ -101,6 +104,14 @@ public class FullscreenActivity extends AppCompatActivity {
                 .execute().subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::playAdvertisements));
+        initAdvertisement();
+    }
+
+    private void initAdvertisement() {
+        AdvertisementRepository advertisementRepository = new RoomRepository(this);
+        advertisementRepository.setAdvertisements(getAdvertisementList()).subscribeOn(Schedulers.io()).subscribe(() -> {
+
+        }, Throwable::printStackTrace);
     }
 
     private void playAdvertisements(List<Advertisement> advertisements) {
@@ -153,6 +164,8 @@ public class FullscreenActivity extends AppCompatActivity {
         MediaFile mediaFile = new MediaFile(this, file.getPath(), Message.FILE_MESSAGE);
         mes.setByteArray(mediaFile.fileToByteArray());
         mes.setFileName(mediaFile.getFileName());
+        mes.setChatName("5915bd627ce91c3851f43c5e");
+        mes.setmText("人生走馬燈篇");
         if (isMaster) {
             Log.e("test", "Message hydrated, start SendMessageServer AsyncTask");
             new SendMessageServer(this, true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
@@ -190,7 +203,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private List<Advertisement> getAdvertisementList() {
         List<Advertisement> advertisements = new ArrayList<>();
         advertisements.add(Advertisement.builder()
-                .id("0")
+                .id("1")
                 .index(0)
                 .video(Video.builder()
                         .index(0)
@@ -200,7 +213,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         .build())
                 .build());
         advertisements.add(Advertisement.builder()
-                .id("1")
+                .id("5915bd627ce91c3851f43c5e")
                 .index(1)
                 .video(Video.builder()
                         .index(1)

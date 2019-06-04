@@ -11,6 +11,7 @@ import com.wharfofwisdom.focusmediaplayer.domain.repository.db.entity.VideoEntit
 
 import java.util.List;
 
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 
 @Dao
@@ -22,13 +23,15 @@ public interface AdvertisementDao {
     @Query("SELECT * FROM VideoEntity WHERE adId IN(:adIds)")
     Flowable<List<VideoEntity>> getVideos(String[] adIds);
 
+    @Query("SELECT * FROM VideoEntity")
+    Flowable<List<VideoEntity>> getVideos();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void saveAdvertisements(List<AdEntity> entities);
+    Completable saveAdvertisements(List<AdEntity> entities);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void saveAdvertisements(AdEntity entities);
+    Completable saveAdvertisements(AdEntity entities);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void saveVideo(VideoEntity videoEntity);
+    Completable saveVideo(VideoEntity videoEntity);
 }
