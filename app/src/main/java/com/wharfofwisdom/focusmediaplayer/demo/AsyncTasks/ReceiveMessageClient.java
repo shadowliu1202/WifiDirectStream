@@ -8,6 +8,7 @@ import android.widget.Toast;
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -35,7 +36,6 @@ public class ReceiveMessageClient extends AbstractReceiver {
                 BufferedInputStream buffer = new BufferedInputStream(inputStream);
                 ObjectInputStream objectIS = new ObjectInputStream(buffer);
                 Message message = (Message) objectIS.readObject();
-
                 destinationSocket.close();
                 publishProgress(message);
             }
@@ -62,19 +62,12 @@ public class ReceiveMessageClient extends AbstractReceiver {
     @Override
     protected void onProgressUpdate(Message... values) {
         super.onProgressUpdate(values);
-        playNotification(mContext, values[0]);
-
         //If the message contains a video or an audio, we saved this file to the external storage
         int type = values[0].getmType();
         if (type == Message.AUDIO_MESSAGE || type == Message.VIDEO_MESSAGE || type == Message.FILE_MESSAGE || type == Message.DRAWING_MESSAGE) {
-            values[0].saveByteArrayToFile(mContext);
+            File file = values[0].saveByteArrayToFile(mContext);
         }
-//		//// MARK: 16/06/2018 This is the final cycle of tracking our msg. A client receiving a msg from the server.
-//		values[0].setUser_record(MainActivity.loadChatName(mContext));
-//
-//		if(isActivityRunning(MainActivity.class)){
-//			ChatActivity.refreshList(values[0], false);
-//		}
+
         Toast.makeText(mContext, values[0].getmText(), Toast.LENGTH_SHORT).show();
         Log.e("Test", "onProgressUpdate Client Receive" + values[0].getmText());
     }

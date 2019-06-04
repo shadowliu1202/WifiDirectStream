@@ -5,11 +5,12 @@ import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity
-public class AdEntity {
+public class VideoEntity {
     @PrimaryKey
     @NonNull
     public String id = "";
-    public int order;
-    public String videoId;
+    @NonNull
+    public String adId = "";
     public String videoUrl;
+    public String filePath;
 }
