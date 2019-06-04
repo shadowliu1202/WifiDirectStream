@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
-import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -24,8 +23,6 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.util.Util;
-import com.google.android.gms.nearby.Nearby;
-import com.google.android.gms.nearby.connection.Payload;
 import com.wharfofwisdom.focusmediaplayer.DemoApplication;
 import com.wharfofwisdom.focusmediaplayer.R;
 import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageClient;
@@ -36,21 +33,21 @@ import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
 import com.wharfofwisdom.focusmediaplayer.demo.MessageService;
 import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CommandFactory;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.video.DownloadVideoFile;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.DownloadVideoFile;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.GetLoadedAdvertisements;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Signaller;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.CloudRepository;
+import com.wharfofwisdom.focusmediaplayer.domain.repository.db.RoomRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
 import com.wharfofwisdom.focusmediaplayer.presentation.service.DemoDownloadService;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -59,6 +56,7 @@ import java.util.concurrent.TimeUnit;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
 
 public class FullscreenActivity extends AppCompatActivity {
 
@@ -98,9 +96,19 @@ public class FullscreenActivity extends AppCompatActivity {
                 .map(this::createVideoListFromLocal)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::playVideoFromCache, Throwable::printStackTrace));
-        findViewById(R.id.fb_send).setOnClickListener(v -> {
-            sendFile(file);
-        });
+        findViewById(R.id.fb_send).setOnClickListener(v -> sendFile(file));
+        compositeDisposable.add(new GetLoadedAdvertisements(new RoomRepository(this))
+                .execute().subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::playAdvertisements));
+    }
+
+    private void playAdvertisements(List<Advertisement> advertisements) {
+        List<Video> videos = new ArrayList<>();
+        for (Advertisement advertisement : advertisements) {
+            videos.add(advertisement.video());
+        }
+        playVideoFromCache(videos);
     }
 
     private P2PRepository startP2PConnection() {

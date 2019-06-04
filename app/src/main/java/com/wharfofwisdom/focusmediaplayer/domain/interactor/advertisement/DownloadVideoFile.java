@@ -1,4 +1,4 @@
-package com.wharfofwisdom.focusmediaplayer.domain.interactor.video;
+package com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement;
 
 import android.net.Uri;
 

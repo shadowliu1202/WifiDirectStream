@@ -83,3 +83,18 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:+'
     implementation 'com.google.android.material:material:1.0.0'
 }
+
+//Android Room
+dependencies {
+    def room_version = "2.1.0-alpha04"
+    implementation "androidx.room:room-runtime:2.1.0-rc01"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+    implementation "android.arch.persistence.room:guava:$room_version"
+    implementation "androidx.room:room-rxjava2:2.1.0-rc01"
+    testImplementation "androidx.room:room-testing:$room_version"
+    def paging_version = "2.1.0"
+    implementation "androidx.paging:paging-runtime:$paging_version"
+    testImplementation "androidx.paging:paging-common:$paging_version"
+    implementation "androidx.paging:paging-rxjava2:$paging_version"
+
+}
