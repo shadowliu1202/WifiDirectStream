@@ -5,9 +5,9 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.command.CreateSquad;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.command.JoinSquad;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.command.SearchSquad;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.squad.CreateSquad;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.squad.JoinSquad;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.squad.SearchSquad;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 

@@ -1,4 +1,4 @@
-package com.wharfofwisdom.focusmediaplayer.domain.interactor.command;
+package com.wharfofwisdom.focusmediaplayer.domain.interactor.squad;
 
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;

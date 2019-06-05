@@ -1,6 +1,6 @@
 package com.wharfofwisdom.focusmediaplayer.domain.repository.nearby;
 
-import com.wharfofwisdom.focusmediaplayer.domain.model.squad.message.Message;
+import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Message;
 
 import java.io.File;
 

@@ -3,14 +3,16 @@ package com.wharfofwisdom.focusmediaplayer.domain.model.squad.position;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Leader {
+public abstract class Leader extends Squad{
 
-    List<Member> members = new ArrayList<>();
+    List<Follower> followers = new ArrayList<>();
 
-    public abstract void createSquad();
+    public void addFollowers(Follower follower) {
+        followers.add(follower);
+    }
 
-    public void addMember(Member member) {
-        members.add(member);
+    public void removeFollowers(Follower follower) {
+        followers.remove(follower);
     }
 
 }

@@ -22,7 +22,7 @@ import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.android.gms.nearby.connection.Strategy;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
-import com.wharfofwisdom.focusmediaplayer.domain.model.squad.message.Message;
+import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Message;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 
 import java.io.File;

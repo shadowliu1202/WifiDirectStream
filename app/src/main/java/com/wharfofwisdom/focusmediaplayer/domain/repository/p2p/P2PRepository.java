@@ -1,6 +1,5 @@
 package com.wharfofwisdom.focusmediaplayer.domain.repository.p2p;
 
-import android.content.Context;
 import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
@@ -13,9 +12,8 @@ import android.net.wifi.p2p.nsd.WifiP2pServiceRequest;
 
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
-import com.wharfofwisdom.focusmediaplayer.domain.model.squad.message.Message;
+import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Message;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
-import com.wharfofwisdom.focusmediaplayer.domain.repository.nearby.NearByRepository;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
 
 import java.util.HashMap;

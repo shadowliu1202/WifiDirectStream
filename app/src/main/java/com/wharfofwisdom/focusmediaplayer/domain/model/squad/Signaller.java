@@ -1,5 +1,8 @@
 package com.wharfofwisdom.focusmediaplayer.domain.model.squad;
 
+/**
+ * Solider : Consider as a Kiosk has Internet connection.
+ */
 public final class Signaller extends Soldier {
     private static final Signaller instance = new Signaller();
     private String defaultSquadName;

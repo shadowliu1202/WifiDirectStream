@@ -34,14 +34,11 @@ import com.wharfofwisdom.focusmediaplayer.demo.MessageService;
 import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.AdvertisementRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CommandFactory;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.DownloadVideoFile;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.GetLoadedAdvertisements;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Signaller;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
-import com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.CloudRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.RoomRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
@@ -54,11 +51,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import io.reactivex.Scheduler;
 import io.reactivex.Single;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.Action;
 import io.reactivex.schedulers.Schedulers;
 
 public class FullscreenActivity extends AppCompatActivity {
@@ -79,32 +73,41 @@ public class FullscreenActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fullscreen);
-        PlayerView mContentView = findViewById(R.id.fullscreen_content);
-        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-        player = ExoPlayerFactory.newSimpleInstance(this);
-        mContentView.setPlayer(player);
+        initPlayer();
         squad = getIntent().getParcelableExtra(SQUAD_NAME);
         soldier = CommandFactory.createSolider(false, this);
         P2PRepository repository = startP2PConnection();
         receiver = repository.getReceiver();
         startService(new Intent(this, MessageService.class));
-        compositeDisposable.add(new DownloadVideoFile(new CloudRepository(this), Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596984200-健檢篇.mp4"))
-                .execute()
-                .doOnSuccess(file -> this.file = file)
-                .map(this::createVideoListFromLocal)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::playVideoFromCache, Throwable::printStackTrace));
-        findViewById(R.id.fb_send).setOnClickListener(v -> sendFile(file));
-        compositeDisposable.add(new GetLoadedAdvertisements(new RoomRepository(this))
-                .execute().subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::playAdvertisements));
-        initAdvertisement();
+//        compositeDisposable.add(new DownloadVideoFile(new CloudRepository(this), Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596984200-健檢篇.mp4"))
+//                .execute()
+//                .doOnSuccess(file -> this.file = file)
+//                .map(this::createVideoListFromLocal)
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(this::playVideoFromCache, Throwable::printStackTrace));
+//        findViewById(R.id.fb_send).setOnClickListener(v -> sendFile(file));
+//        compositeDisposable.add(new GetLoadedAdvertisements(new RoomRepository(this))
+//                .execute().subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(this::playAdvertisements));
+//        initAdvertisement();
+    }
+
+    private void initPlayer() {
+        player = ExoPlayerFactory.newSimpleInstance(this);
+        PlayerView mContentView = findViewById(R.id.fullscreen_content);
+        mContentView.setPlayer(player);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        findViewById(R.id.fullscreen_content).setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
     }
 
     private void initAdvertisement() {

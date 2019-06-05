@@ -1,4 +1,4 @@
 package com.wharfofwisdom.focusmediaplayer.domain.model.squad.position;
 
-public class Member {
+public abstract class Follower extends Squad {
 }
