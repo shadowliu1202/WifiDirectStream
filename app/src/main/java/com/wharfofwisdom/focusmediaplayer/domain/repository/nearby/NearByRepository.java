@@ -68,7 +68,7 @@ public class NearByRepository implements SquadRepository {
                         new ConnectionLifecycleCallback() {
                             @Override
                             public void onConnectionInitiated(@NonNull String endpointId, @NonNull ConnectionInfo connectionInfo) {
-                                emitter.onSuccess(Squad.builder().name(endpointId).leaderLocation(endpointId).build());
+                                emitter.onSuccess(Squad.builder().name(endpointId).address(endpointId).build());
                                 connectionsClient.acceptConnection(endpointId, new PayloadCallback() {
                                     @Override
                                     public void onPayloadReceived(@NonNull String s, @NonNull Payload payload) {
@@ -155,7 +155,7 @@ public class NearByRepository implements SquadRepository {
 
     @Override
     public Single<Squad> createSquad(Kiosk soldier) {
-        return Single.just(Squad.builder().leaderLocation("").name(soldier.name()).build());
+        return Single.just(Squad.builder().address("").name(soldier.name()).build());
     }
 
     @Override
@@ -166,7 +166,7 @@ public class NearByRepository implements SquadRepository {
                 @Override
                 public void onEndpointFound(@NonNull String endpointId, @NonNull DiscoveredEndpointInfo discoveredEndpointInfo) {
                     // An endpoint was found. We request a connection to it.
-                    emitter.onSuccess(Squad.builder().name(endpointId).leaderLocation(endpointId).build());
+                    emitter.onSuccess(Squad.builder().name(endpointId).address(endpointId).build());
                 }
 
                 @Override
@@ -181,7 +181,7 @@ public class NearByRepository implements SquadRepository {
     @Override
     public Single<Squad> joinSquad(Squad squad) {
         return Single.create(emitter -> connectionsClient
-                .requestConnection("test", squad.leaderLocation(), new ConnectionLifecycleCallback() {
+                .requestConnection("test", squad.address(), new ConnectionLifecycleCallback() {
                     @Override
                     public void onConnectionInitiated(@NonNull String endpointId, @NonNull ConnectionInfo connectionInfo) {
                         connectionsClient.acceptConnection(endpointId, new PayloadCallback() {

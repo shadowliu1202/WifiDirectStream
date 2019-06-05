@@ -27,11 +27,11 @@ import io.reactivex.subjects.PublishSubject;
 
 public class P2PRepository implements SquadRepository {
     private static final String IdentityGroup = "focusmedia";
+    private static final String GROUP = "group";
     private final WifiP2pManager mManager;
     private final WifiP2pManager.Channel mChannel;
     private final WifiP2PReceiver receiver;
     private PublishSubject<WifiP2pInfo> p2pInfoPublishSubject = PublishSubject.create();
-    private static P2PRepository p2PRepository;
 
     public P2PRepository(WifiP2pManager mManager, WifiP2pManager.Channel mChannel) {
         this.mManager = mManager;
@@ -79,7 +79,7 @@ public class P2PRepository implements SquadRepository {
     private Single<Squad> addLocalService(Squad squad) {
         return Single.create(emitter -> {
             Map<String, String> record = new HashMap<>();
-            record.put("GroupName", squad.name());
+            record.put(GROUP, squad.name());
             record.put("buddyname", "John Doe" + (int) (Math.random() * 1000));
             record.put("available", "visible");
             WifiP2pDnsSdServiceInfo serviceInfo = WifiP2pDnsSdServiceInfo.newInstance(IdentityGroup, "_presence._tcp", record);
@@ -104,18 +104,18 @@ public class P2PRepository implements SquadRepository {
     }
 
     @Override
-    public Single<Squad> createSquad(Kiosk soldier) {
-        return createGroup(soldier);
+    public Single<Squad> createSquad(Kiosk kiosk) {
+        return createGroup(kiosk);
     }
 
-    private Single<Squad> createGroup(Kiosk soldier) {
+    private Single<Squad> createGroup(Kiosk kiosk) {
         return Completable.fromAction(() -> mManager.createGroup(mChannel, null))
                 .andThen(p2pInfoPublishSubject)
                 .flatMapSingle(p2pInfo -> {
                     if (p2pInfo.groupFormed && p2pInfo.isGroupOwner) {
                         return Single.just(Squad.builder()
-                                .leaderLocation(p2pInfo.groupOwnerAddress.getHostAddress())
-                                .name(soldier.name()).build());
+                                .address(p2pInfo.groupOwnerAddress.getHostAddress())
+                                .name(kiosk.name()).build());
                     }
                     return Single.error(new Exception("UnExpected Error"));
                 }).firstOrError();
@@ -164,7 +164,7 @@ public class P2PRepository implements SquadRepository {
                 final HashMap<String, String> buddies = new HashMap<>();
                 WifiP2pManager.DnsSdTxtRecordListener txtListener = (fullDomain, record, device) -> {
                     if (fullDomain.contains(IdentityGroup)) {
-                        emitter.onSuccess(Squad.builder().name(record.get("GroupName")).leaderLocation(device.deviceAddress).build());
+                        emitter.onSuccess(Squad.builder().name(record.get(GROUP)).address(device.deviceAddress).build());
                     }
                     buddies.put(device.deviceAddress, record.get("buddyname"));
                 };
@@ -194,9 +194,9 @@ public class P2PRepository implements SquadRepository {
         }));
     }
 
-    private Completable connectService(Squad device) {
+    private Completable connectService(String deviceAddress) {
         WifiP2pConfig config = new WifiP2pConfig();
-        config.deviceAddress = device.leaderLocation();
+        config.deviceAddress = deviceAddress;
         config.wps.setup = WpsInfo.PBC;
         return Completable.create(emitter -> mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
 
@@ -214,7 +214,7 @@ public class P2PRepository implements SquadRepository {
 
     @Override
     public Single<Squad> joinSquad(Squad squad) {
-        return connectService(squad).andThen(Single.just(squad));
+        return connectService(squad.address()).andThen(Single.just(squad));
     }
 
     public WifiP2PReceiver getReceiver() {

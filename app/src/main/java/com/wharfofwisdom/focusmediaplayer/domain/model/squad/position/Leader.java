@@ -3,7 +3,9 @@ package com.wharfofwisdom.focusmediaplayer.domain.model.squad.position;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Leader extends Squad{
+public abstract class Leader {
+
+    public abstract Squad squad();
 
     List<Follower> followers = new ArrayList<>();
 

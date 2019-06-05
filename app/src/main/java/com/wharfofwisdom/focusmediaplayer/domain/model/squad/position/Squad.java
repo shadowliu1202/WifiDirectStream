@@ -9,11 +9,11 @@ import com.google.auto.value.AutoValue;
 @AutoValue
 public abstract class Squad implements Parcelable {
 
-    public static final Squad NO_SQUAD = Squad.builder().leaderLocation("n/a").name("n/a").build();
+    public static final Squad NO_SQUAD = Squad.builder().address("n/a").name("n/a").build();
 
     public abstract String name();
 
-    public abstract String leaderLocation();
+    public abstract String address();
 
     public static Builder builder() {
         return new AutoValue_Squad.Builder();
@@ -23,7 +23,7 @@ public abstract class Squad implements Parcelable {
     public abstract static class Builder {
         public abstract Builder name(String name);
 
-        public abstract Builder leaderLocation(String leaderLocation);
+        public abstract Builder address(String address);
 
         public abstract Squad build();
     }
