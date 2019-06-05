@@ -2,14 +2,12 @@ package com.wharfofwisdom.focusmediaplayer.presentation;
 
 import androidx.lifecycle.ViewModel;
 
-import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
-
-import io.reactivex.Flowable;
+import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 
 public class SoliderViewModel extends ViewModel {
-    private final Soldier soldier;
+    private final Kiosk soldier;
 
-    public SoliderViewModel(Soldier soldier) {
+    public SoliderViewModel(Kiosk soldier) {
         this.soldier = soldier;
     }
 

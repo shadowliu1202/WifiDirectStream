@@ -10,8 +10,8 @@ public class SearchSquad {
     private final SquadRepository repository;
     private final String name;
 
-    public SearchSquad(String name, SquadRepository repository) {
-        this.name = name;
+    public SearchSquad(Squad squad, SquadRepository repository) {
+        this.name = squad.name();
         this.repository = repository;
     }
 

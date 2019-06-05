@@ -21,7 +21,7 @@ import com.google.android.gms.nearby.connection.PayloadCallback;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.android.gms.nearby.connection.Strategy;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
-import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
+import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Message;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 
@@ -154,8 +154,8 @@ public class NearByRepository implements SquadRepository {
     }
 
     @Override
-    public Single<Squad> createSquad(Soldier soldier) {
-        return Single.just(Squad.builder().leaderLocation("").name(soldier.getSquadName()).build());
+    public Single<Squad> createSquad(Kiosk soldier) {
+        return Single.just(Squad.builder().leaderLocation("").name(soldier.name()).build());
     }
 
     @Override

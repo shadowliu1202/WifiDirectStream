@@ -5,24 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.NetworkInfo;
 import android.net.wifi.p2p.WifiP2pDevice;
-import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
-import android.os.AsyncTask;
-import android.os.Parcelable;
 import android.util.Log;
 
-import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageClient;
-import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageServer;
-import com.wharfofwisdom.focusmediaplayer.demo.ClientInit;
-import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
-import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
-import com.wharfofwisdom.focusmediaplayer.presentation.FullscreenActivity;
-
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public class WifiP2PReceiver extends BroadcastReceiver {

@@ -13,7 +13,7 @@ import android.preference.PreferenceManager;
 
 import com.wharfofwisdom.focusmediaplayer.R;
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
-import com.wharfofwisdom.focusmediaplayer.presentation.FullscreenActivity;
+import com.wharfofwisdom.focusmediaplayer.presentation.AdvertisementActivity;
 
 
 public class AbstractReceiver extends AsyncTask<Void, Message, Void> {
@@ -27,7 +27,7 @@ public class AbstractReceiver extends AsyncTask<Void, Message, Void> {
 		Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 		
 		//Intent exactly like Android intent to launch the app => the app is simply brought back to front
-		Intent intent = new Intent(context, FullscreenActivity.class);
+		Intent intent = new Intent(context, AdvertisementActivity.class);
 		intent.setAction(Intent.ACTION_MAIN);
 		intent.addCategory(Intent.CATEGORY_LAUNCHER);
 		

@@ -36,8 +36,8 @@ import com.wharfofwisdom.focusmediaplayer.domain.interactor.AdvertisementReposit
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CommandFactory;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
-import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Signaller;
-import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
+import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.NetworkKiosk;
+import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.RoomRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
@@ -55,9 +55,9 @@ import io.reactivex.Single;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
 
-public class FullscreenActivity extends AppCompatActivity {
+public class AdvertisementActivity extends AppCompatActivity {
 
-    public static final String SQUAD_NAME = "SQUAD_NAME";
+    public static final String SQUAD = "SQUAD";
     private SimpleExoPlayer player;
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private ConcatenatingMediaSource concatenatedSource = new ConcatenatingMediaSource();
@@ -66,7 +66,7 @@ public class FullscreenActivity extends AppCompatActivity {
     public static boolean isMaster = true;
     private File file;
     private Squad squad;
-    private Soldier soldier;
+    private Kiosk soldier;
     private InetAddress ownerAddress;
 
     @Override
@@ -74,8 +74,8 @@ public class FullscreenActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fullscreen);
         initPlayer();
-        squad = getIntent().getParcelableExtra(SQUAD_NAME);
-        soldier = CommandFactory.createSolider(false, this);
+        squad = getIntent().getParcelableExtra(SQUAD);
+        soldier = CommandFactory.createSolider(this);
         P2PRepository repository = startP2PConnection();
         receiver = repository.getReceiver();
         startService(new Intent(this, MessageService.class));
@@ -148,7 +148,7 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     public void sendMessage(String message, String identity) {
-        if (soldier instanceof Signaller) {
+        if (soldier instanceof NetworkKiosk) {
             Message mes = new Message(Message.TEXT_MESSAGE, "Welcome", null, "Owner");
             mes.setUser_record("Owner");
             Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");

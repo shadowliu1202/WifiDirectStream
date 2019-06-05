@@ -1,17 +1,17 @@
 package com.wharfofwisdom.focusmediaplayer.domain.interactor.squad;
 
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
-import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
+import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 
 public class CreateSquad {
-    private final Soldier soldier;
+    private final Kiosk soldier;
     private final SquadRepository repository;
 
-    public CreateSquad(Soldier soldier, SquadRepository repository) {
+    public CreateSquad(Kiosk soldier, SquadRepository repository) {
         this.soldier = soldier;
         this.repository = repository;
     }

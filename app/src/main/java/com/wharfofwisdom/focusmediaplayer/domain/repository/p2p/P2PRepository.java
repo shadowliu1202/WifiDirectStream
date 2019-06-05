@@ -11,7 +11,7 @@ import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.net.wifi.p2p.nsd.WifiP2pServiceRequest;
 
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
-import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
+import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Message;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
@@ -104,18 +104,18 @@ public class P2PRepository implements SquadRepository {
     }
 
     @Override
-    public Single<Squad> createSquad(Soldier soldier) {
+    public Single<Squad> createSquad(Kiosk soldier) {
         return createGroup(soldier);
     }
 
-    private Single<Squad> createGroup(Soldier soldier) {
+    private Single<Squad> createGroup(Kiosk soldier) {
         return Completable.fromAction(() -> mManager.createGroup(mChannel, null))
                 .andThen(p2pInfoPublishSubject)
                 .flatMapSingle(p2pInfo -> {
                     if (p2pInfo.groupFormed && p2pInfo.isGroupOwner) {
                         return Single.just(Squad.builder()
                                 .leaderLocation(p2pInfo.groupOwnerAddress.getHostAddress())
-                                .name(soldier.getSquadName()).build());
+                                .name(soldier.name()).build());
                     }
                     return Single.error(new Exception("UnExpected Error"));
                 }).firstOrError();

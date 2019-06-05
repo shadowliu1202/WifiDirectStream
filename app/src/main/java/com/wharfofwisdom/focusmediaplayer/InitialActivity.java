@@ -17,16 +17,16 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.wharfofwisdom.focusmediaplayer.databinding.ActivityWelcomeBinding;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CommandFactory;
-import com.wharfofwisdom.focusmediaplayer.domain.model.squad.Soldier;
+import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
-import com.wharfofwisdom.focusmediaplayer.presentation.FullscreenActivity;
+import com.wharfofwisdom.focusmediaplayer.presentation.AdvertisementActivity;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 
-public class WelcomeActivity extends AppCompatActivity {
+public class InitialActivity extends AppCompatActivity {
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private WifiP2PReceiver receiver;
     private final IntentFilter intentFilter = new IntentFilter();
@@ -35,7 +35,7 @@ public class WelcomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ActivityWelcomeBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_welcome);
-        Soldier soldier = CommandFactory.createSolider(false, this);
+        Kiosk soldier = CommandFactory.createSolider(this);
         P2PRepository repository = initP2P();
         receiver = repository.getReceiver();
         FindSquadViewModel findSquadViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
@@ -49,9 +49,9 @@ public class WelcomeActivity extends AppCompatActivity {
         binding.setViewModel(findSquadViewModel);
         binding.setLifecycleOwner(this);
         hideSystemUI();
-        compositeDisposable.add(findSquadViewModel.initializedSquad()
+        compositeDisposable.add(findSquadViewModel.initializeSquad()
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::startPlay, Throwable::printStackTrace));
+                .subscribe(this::startAdvertisement, Throwable::printStackTrace));
     }
 
     //TODO
@@ -77,7 +77,6 @@ public class WelcomeActivity extends AppCompatActivity {
         unregisterReceiver(receiver);
     }
 
-
     private void hideSystemUI() {
         View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE
@@ -88,10 +87,10 @@ public class WelcomeActivity extends AppCompatActivity {
                 | View.SYSTEM_UI_FLAG_FULLSCREEN);
     }
 
-    private void startPlay(Squad squad) {
-        Toast.makeText(this, "Find Squad" + squad.name(), Toast.LENGTH_LONG).show();
-        Intent intent = new Intent(this, FullscreenActivity.class);
-        startActivity(intent.putExtra(FullscreenActivity.SQUAD_NAME, squad));
+    private void startAdvertisement(Squad squad) {
+        Toast.makeText(this, "Start Squad:" + squad.name(), Toast.LENGTH_LONG).show();
+        Intent intent = new Intent(this, AdvertisementActivity.class);
+        startActivity(intent.putExtra(AdvertisementActivity.SQUAD, squad));
         finish();
     }
 }
