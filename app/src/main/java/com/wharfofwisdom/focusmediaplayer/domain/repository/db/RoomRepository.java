@@ -3,7 +3,7 @@ package com.wharfofwisdom.focusmediaplayer.domain.repository.db;
 import android.content.Context;
 import android.util.Log;
 
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.AdvertisementRepository;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.CacheRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.dao.AdvertisementDao;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.entity.VideoEntity;
@@ -14,11 +14,10 @@ import java.util.List;
 
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
-import io.reactivex.Scheduler;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
-public class RoomRepository implements AdvertisementRepository {
+public class RoomRepository implements CacheRepository {
     private final AdvertisementDao advertisementDao;
 
     public RoomRepository(Context context) {

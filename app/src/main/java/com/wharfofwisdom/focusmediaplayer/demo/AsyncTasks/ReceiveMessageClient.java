@@ -6,7 +6,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.AdvertisementRepository;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.CacheRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.RoomRepository;
 
 import java.io.BufferedInputStream;
@@ -18,16 +18,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
 
-import io.reactivex.Completable;
-import io.reactivex.Scheduler;
-import io.reactivex.functions.Action;
 import io.reactivex.schedulers.Schedulers;
 
 public class ReceiveMessageClient extends AbstractReceiver {
     private static final int SERVER_PORT = 4446;
     private Context mContext;
     private ServerSocket socket;
-    private AdvertisementRepository repository;
+    private CacheRepository repository;
 
     public ReceiveMessageClient(Context context) {
         mContext = context;

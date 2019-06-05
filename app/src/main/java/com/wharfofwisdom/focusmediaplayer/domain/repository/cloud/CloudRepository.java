@@ -5,20 +5,24 @@ import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
 
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.FileRepository;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.AdvertisementRepository;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.VideoRepository;
+import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.kiosk.KioskClient;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.kiosk.file.FileService;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
+import io.reactivex.Flowable;
 import io.reactivex.Single;
 import okhttp3.ResponseBody;
 import okio.BufferedSink;
 import okio.Okio;
 import retrofit2.Response;
 
-public class CloudRepository implements FileRepository {
+public class CloudRepository implements VideoRepository , AdvertisementRepository {
     private final FileService fileService;
 
     public CloudRepository(Context context) {
@@ -49,5 +53,10 @@ public class CloudRepository implements FileRepository {
                 emitter.onError(e);
             }
         });
+    }
+
+    @Override
+    public Flowable<List<Advertisement>> getAdvertisements() {
+        return null;
     }
 }

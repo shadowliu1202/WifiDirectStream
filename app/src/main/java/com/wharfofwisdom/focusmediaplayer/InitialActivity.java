@@ -16,7 +16,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.wharfofwisdom.focusmediaplayer.databinding.ActivityWelcomeBinding;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.CommandFactory;
+import com.wharfofwisdom.focusmediaplayer.domain.executor.KioskFactory;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
@@ -35,7 +35,7 @@ public class InitialActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ActivityWelcomeBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_welcome);
-        Kiosk soldier = CommandFactory.createSolider(this);
+        Kiosk soldier = KioskFactory.create(this);
         P2PRepository repository = initP2P();
         receiver = repository.getReceiver();
         FindSquadViewModel findSquadViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {

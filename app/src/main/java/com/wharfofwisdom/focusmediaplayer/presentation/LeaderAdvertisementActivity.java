@@ -32,10 +32,10 @@ import com.wharfofwisdom.focusmediaplayer.demo.Entities.MediaFile;
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
 import com.wharfofwisdom.focusmediaplayer.demo.MessageService;
 import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.AdvertisementRepository;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.CommandFactory;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.CacheRepository;
+import com.wharfofwisdom.focusmediaplayer.domain.executor.KioskFactory;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.DownloadVideoFile;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.GetLoadedAdvertisements;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.GetCachedAdvertisements;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.NetworkKiosk;
@@ -69,32 +69,46 @@ public class LeaderAdvertisementActivity extends AppCompatActivity {
     private WifiP2PReceiver receiver;
     public static boolean isMaster = true;
     private File file;
-//    private Squad squad;
-    private Kiosk soldier;
+    private Squad.POSITION squadPosition;
+    private Kiosk kiosk;
     private InetAddress ownerAddress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fullscreen);
-        initPlayer();
-        //squad = getIntent().getParcelableExtra(SQUAD);
-        soldier = CommandFactory.createSolider(this);
+
+        //====== Wifi Direct 相關 設定======
+        startService(new Intent(this, MessageService.class));
         P2PRepository repository = startP2PConnection();
         receiver = repository.getReceiver();
-        startService(new Intent(this, MessageService.class));
+        //=================================
+
+        //===========廣告播放 設定===========
+        initPlayer();
+        squadPosition = (Squad.POSITION) getIntent().getSerializableExtra(SQUAD);
+        kiosk = KioskFactory.create(this);
+        compositeDisposable.add(kiosk.start().retry().doOnError(this::onError).subscribe());
         compositeDisposable.add(new DownloadVideoFile(new CloudRepository(this), Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596984200-健檢篇.mp4"))
                 .execute()
                 .doOnSuccess(file -> this.file = file)
                 .map(this::createVideoListFromLocal)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::playVideoFromCache, Throwable::printStackTrace));
-        findViewById(R.id.fb_send).setOnClickListener(v -> sendFile(file));
-        compositeDisposable.add(new GetLoadedAdvertisements(new RoomRepository(this))
+        compositeDisposable.add(new GetCachedAdvertisements(new RoomRepository(this))
                 .execute().subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::playAdvertisements));
+        //=================================
+
+        //===============測試用=============
+        findViewById(R.id.fb_send).setOnClickListener(v -> sendFile(file));
         initAdvertisement();
+        //=================================
+    }
+
+    private void onError(Throwable throwable) {
+        throwable.printStackTrace();
     }
 
     private void initPlayer() {
@@ -112,10 +126,18 @@ public class LeaderAdvertisementActivity extends AppCompatActivity {
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        registerReceiver(receiver, intentFilter);
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(receiver);
     }
 
     private void initAdvertisement() {
-        AdvertisementRepository advertisementRepository = new RoomRepository(this);
+        CacheRepository advertisementRepository = new RoomRepository(this);
         advertisementRepository.setAdvertisements(getAdvertisementList()).subscribeOn(Schedulers.io()).subscribe(() -> {
 
         }, Throwable::printStackTrace);
@@ -152,7 +174,7 @@ public class LeaderAdvertisementActivity extends AppCompatActivity {
     }
 
     public void sendMessage(String message, String identity) {
-        if (soldier instanceof NetworkKiosk) {
+        if (kiosk instanceof NetworkKiosk) {
             Message mes = new Message(Message.TEXT_MESSAGE, "Welcome", null, "Owner");
             mes.setUser_record("Owner");
             Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");

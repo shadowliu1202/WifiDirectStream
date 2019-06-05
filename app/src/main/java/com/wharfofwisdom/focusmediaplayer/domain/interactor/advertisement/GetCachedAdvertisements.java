@@ -1,6 +1,6 @@
 package com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement;
 
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.AdvertisementRepository;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.CacheRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 
 import java.util.List;
@@ -8,10 +8,10 @@ import java.util.List;
 import io.reactivex.Flowable;
 import io.reactivex.schedulers.Schedulers;
 
-public class GetLoadedAdvertisements {
-    private final AdvertisementRepository advertisementRepository;
+public class GetCachedAdvertisements {
+    private final CacheRepository advertisementRepository;
 
-    public GetLoadedAdvertisements(AdvertisementRepository advertisementRepository) {
+    public GetCachedAdvertisements(CacheRepository advertisementRepository) {
         this.advertisementRepository = advertisementRepository;
     }
 

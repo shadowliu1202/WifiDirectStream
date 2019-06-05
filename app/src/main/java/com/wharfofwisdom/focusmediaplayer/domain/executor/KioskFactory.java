@@ -1,4 +1,4 @@
-package com.wharfofwisdom.focusmediaplayer.domain.interactor;
+package com.wharfofwisdom.focusmediaplayer.domain.executor;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -10,8 +10,8 @@ import android.text.TextUtils;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.NetworkKiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 
-public class CommandFactory {
-    public static Kiosk createSolider(Context context) {
+public class KioskFactory {
+    public static Kiosk create(Context context) {
         //TODO : Temp use to differ Signaller/Soldier
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
             return NetworkKiosk.createInstance(getLocalMacAddressFromWifiInfo(context));

@@ -6,7 +6,7 @@ import java.io.File;
 
 import io.reactivex.Single;
 
-public interface FileRepository {
+public interface VideoRepository {
 
     Single<File> getFile(Uri uri);
 }

@@ -3,6 +3,7 @@ package com.wharfofwisdom.focusmediaplayer.domain.model.hardware;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 
 import io.reactivex.Completable;
+import io.reactivex.Flowable;
 
 /**
  * Solider : Consider as Kiosk without Internet connection.
@@ -29,5 +30,10 @@ public class Kiosk {
 
     public Completable startMission() {
         return Completable.complete();
+    }
+
+    public Flowable<Void> start() {
+        return null;
+
     }
 }
