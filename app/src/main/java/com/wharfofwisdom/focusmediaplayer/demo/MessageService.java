@@ -8,7 +8,7 @@ import android.util.Log;
 
 import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.ReceiveMessageClient;
 import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.ReceiveMessageServer;
-import com.wharfofwisdom.focusmediaplayer.presentation.AdvertisementActivity;
+import com.wharfofwisdom.focusmediaplayer.presentation.LeaderAdvertisementActivity;
 
 
 public class MessageService extends Service {
@@ -24,7 +24,7 @@ public class MessageService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (AdvertisementActivity.isMaster) {
+        if (LeaderAdvertisementActivity.isMaster) {
             Log.v(TAG, "Start the AsyncTask for the server to receive messages");
             new ReceiveMessageServer(getApplicationContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
         } else {

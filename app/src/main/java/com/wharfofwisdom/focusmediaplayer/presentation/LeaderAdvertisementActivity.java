@@ -34,11 +34,14 @@ import com.wharfofwisdom.focusmediaplayer.demo.MessageService;
 import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.AdvertisementRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CommandFactory;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.DownloadVideoFile;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.GetLoadedAdvertisements;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.NetworkKiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
+import com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.CloudRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.RoomRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
@@ -52,10 +55,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
 
-public class AdvertisementActivity extends AppCompatActivity {
+public class LeaderAdvertisementActivity extends AppCompatActivity {
 
     public static final String SQUAD = "SQUAD";
     private SimpleExoPlayer player;
@@ -65,7 +69,7 @@ public class AdvertisementActivity extends AppCompatActivity {
     private WifiP2PReceiver receiver;
     public static boolean isMaster = true;
     private File file;
-    private Squad squad;
+//    private Squad squad;
     private Kiosk soldier;
     private InetAddress ownerAddress;
 
@@ -74,23 +78,23 @@ public class AdvertisementActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fullscreen);
         initPlayer();
-        squad = getIntent().getParcelableExtra(SQUAD);
+        //squad = getIntent().getParcelableExtra(SQUAD);
         soldier = CommandFactory.createSolider(this);
         P2PRepository repository = startP2PConnection();
         receiver = repository.getReceiver();
         startService(new Intent(this, MessageService.class));
-//        compositeDisposable.add(new DownloadVideoFile(new CloudRepository(this), Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596984200-健檢篇.mp4"))
-//                .execute()
-//                .doOnSuccess(file -> this.file = file)
-//                .map(this::createVideoListFromLocal)
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(this::playVideoFromCache, Throwable::printStackTrace));
-//        findViewById(R.id.fb_send).setOnClickListener(v -> sendFile(file));
-//        compositeDisposable.add(new GetLoadedAdvertisements(new RoomRepository(this))
-//                .execute().subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(this::playAdvertisements));
-//        initAdvertisement();
+        compositeDisposable.add(new DownloadVideoFile(new CloudRepository(this), Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596984200-健檢篇.mp4"))
+                .execute()
+                .doOnSuccess(file -> this.file = file)
+                .map(this::createVideoListFromLocal)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::playVideoFromCache, Throwable::printStackTrace));
+        findViewById(R.id.fb_send).setOnClickListener(v -> sendFile(file));
+        compositeDisposable.add(new GetLoadedAdvertisements(new RoomRepository(this))
+                .execute().subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::playAdvertisements));
+        initAdvertisement();
     }
 
     private void initPlayer() {
