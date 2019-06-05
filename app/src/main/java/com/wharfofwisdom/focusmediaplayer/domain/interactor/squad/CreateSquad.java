@@ -16,7 +16,8 @@ public class CreateSquad {
         this.repository = repository;
     }
 
-    public Single<Squad> execute() {
-        return repository.createSquad(soldier).flatMap(repository::announceSquad).subscribeOn(Schedulers.io());
+    public Single<Squad.POSITION> execute() {
+        return repository.createSquad(soldier).flatMap(repository::announceSquad).subscribeOn(Schedulers.io())
+                .flatMap(v->Single.just(Squad.POSITION.Leader));
     }
 }

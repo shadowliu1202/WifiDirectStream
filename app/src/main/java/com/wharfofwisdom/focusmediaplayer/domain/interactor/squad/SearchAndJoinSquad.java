@@ -20,7 +20,7 @@ public class SearchAndJoinSquad {
         this.repository = repository;
     }
 
-    public Single<Squad> execute() {
+    public Single<Squad.POSITION> execute() {
         if (name.isEmpty()) {
             return repository.searchSquad().flatMap(repository::joinSquad).subscribeOn(Schedulers.io());
         }

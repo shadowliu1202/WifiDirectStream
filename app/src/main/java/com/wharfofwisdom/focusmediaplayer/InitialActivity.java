@@ -87,10 +87,10 @@ public class InitialActivity extends AppCompatActivity {
                 | View.SYSTEM_UI_FLAG_FULLSCREEN);
     }
 
-    private void startAdvertisement(Squad squad) {
-        Toast.makeText(this, "Start Squad:" + squad.name(), Toast.LENGTH_LONG).show();
-        Intent intent = new Intent(this, AdvertisementActivity.class);
-        startActivity(intent.putExtra(AdvertisementActivity.SQUAD, squad));
+    private void startAdvertisement(Squad.POSITION position) {
+//        Toast.makeText(this, "Start Squad:" + squad.name(), Toast.LENGTH_LONG).show();
+//        Intent intent = new Intent(this, AdvertisementActivity.class);
+//        startActivity(intent.putExtra(AdvertisementActivity.SQUAD, squad));
         finish();
     }
 }

@@ -19,5 +19,5 @@ public interface SquadRepository {
 
     Single<Squad> searchSquad();
 
-    Single<Squad> joinSquad(Squad squad);
+    Single<Squad.POSITION> joinSquad(Squad squad);
 }

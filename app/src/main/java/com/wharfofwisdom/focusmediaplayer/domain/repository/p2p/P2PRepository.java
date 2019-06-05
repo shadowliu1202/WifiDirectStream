@@ -213,8 +213,9 @@ public class P2PRepository implements SquadRepository {
     }
 
     @Override
-    public Single<Squad> joinSquad(Squad squad) {
-        return connectService(squad.address()).andThen(Single.just(squad));
+    public Single<Squad.POSITION> joinSquad(Squad squad) {
+        return connectService(squad.address()).andThen(Single.create(emitter ->
+                mManager.requestConnectionInfo(mChannel, info -> emitter.onSuccess(info.isGroupOwner ? Squad.POSITION.Leader : Squad.POSITION.Follower))));
     }
 
     public WifiP2PReceiver getReceiver() {

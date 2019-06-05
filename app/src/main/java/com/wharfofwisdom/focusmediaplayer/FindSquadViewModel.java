@@ -27,11 +27,11 @@ public class FindSquadViewModel extends ViewModel {
         return status;
     }
 
-    Single<Squad> initializeSquad() {
-        return decideSquad().doOnSuccess(squad -> status.postValue("隊伍" + squad.name() + "創建成功"));
+    Single<Squad.POSITION> initializeSquad() {
+        return decideSquadPosition().doOnSuccess(squad -> status.postValue("隊伍" + squad.name() + "創建成功"));
     }
 
-    private Single<Squad> decideSquad() {
+    private Single<Squad.POSITION> decideSquadPosition() {
         if (hasSquad(kiosk)) {
             status.postValue("加入隊伍中...");
             return new SearchAndJoinSquad(kiosk.squad(), repository).execute().doOnSuccess(squad -> status.postValue("成功加入隊伍:" + squad.name()));

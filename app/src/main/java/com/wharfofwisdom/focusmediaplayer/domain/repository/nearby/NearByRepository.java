@@ -179,7 +179,7 @@ public class NearByRepository implements SquadRepository {
     }
 
     @Override
-    public Single<Squad> joinSquad(Squad squad) {
+    public Single<Squad.POSITION> joinSquad(Squad squad) {
         return Single.create(emitter -> connectionsClient
                 .requestConnection("test", squad.address(), new ConnectionLifecycleCallback() {
                     @Override
@@ -228,7 +228,7 @@ public class NearByRepository implements SquadRepository {
                         commands.onError(new Exception(s));
                     }
                 })
-                .addOnSuccessListener((Void unused) -> emitter.onSuccess(squad))
+                .addOnSuccessListener((Void unused) -> emitter.onSuccess(Squad.POSITION.Follower))
                 .addOnFailureListener(emitter::onError));
     }
 }

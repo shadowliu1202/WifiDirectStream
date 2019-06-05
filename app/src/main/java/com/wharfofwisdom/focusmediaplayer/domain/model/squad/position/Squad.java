@@ -9,6 +9,10 @@ import com.google.auto.value.AutoValue;
 @AutoValue
 public abstract class Squad implements Parcelable {
 
+    public enum POSITION {
+        Leader, Follower
+    }
+
     public static final Squad NO_SQUAD = Squad.builder().address("n/a").name("n/a").build();
 
     public abstract String name();
