@@ -1,7 +1,7 @@
 package com.wharfofwisdom.focusmediaplayer.domain.interactor;
 
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
-import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Message;
+import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Mission;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 
 import io.reactivex.Flowable;
@@ -9,7 +9,7 @@ import io.reactivex.Single;
 
 public interface SquadRepository {
 
-    Flowable<Message> waitCommand();
+    Flowable<Mission> waitCommand();
 
     Single<Squad> announceSquad(Squad squadName);
 

@@ -22,7 +22,7 @@ import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.android.gms.nearby.connection.Strategy;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
-import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Message;
+import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Mission;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 
 import java.io.File;
@@ -36,7 +36,7 @@ import io.reactivex.subjects.ReplaySubject;
 
 public class NearByRepository implements SquadRepository {
 
-    private final ReplaySubject<Message> commands = ReplaySubject.create();
+    private final ReplaySubject<Mission> commands = ReplaySubject.create();
     private static NearByRepository nearByRepository = null;
     private final ConnectionsClient connectionsClient;
     private final SimpleArrayMap<Long, Payload> incomingFilePayloads = new SimpleArrayMap<>();
@@ -55,7 +55,7 @@ public class NearByRepository implements SquadRepository {
     }
 
     @Override
-    public Flowable<Message> waitCommand() {
+    public Flowable<Mission> waitCommand() {
         return commands.toFlowable(BackpressureStrategy.BUFFER);
     }
 

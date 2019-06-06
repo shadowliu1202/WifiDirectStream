@@ -12,7 +12,7 @@ import android.net.wifi.p2p.nsd.WifiP2pServiceRequest;
 
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
-import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Message;
+import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Mission;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
 
@@ -66,7 +66,7 @@ public class P2PRepository implements SquadRepository {
     }
 
     @Override
-    public Flowable<Message> waitCommand() {
+    public Flowable<Mission> waitCommand() {
         return Flowable.empty();
     }
 

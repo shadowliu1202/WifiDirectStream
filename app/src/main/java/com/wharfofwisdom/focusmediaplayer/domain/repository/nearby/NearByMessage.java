@@ -1,10 +1,10 @@
 package com.wharfofwisdom.focusmediaplayer.domain.repository.nearby;
 
-import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Message;
+import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Mission;
 
 import java.io.File;
 
-public class NearByMessage extends Message {
+public class NearByMessage extends Mission {
     private final String message;
     private final File file;
 
@@ -21,5 +21,10 @@ public class NearByMessage extends Message {
     @Override
     public String message() {
         return message;
+    }
+
+    @Override
+    public String mission() {
+        return getClass().getSimpleName();
     }
 }

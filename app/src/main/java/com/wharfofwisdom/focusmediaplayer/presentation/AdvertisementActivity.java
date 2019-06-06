@@ -38,6 +38,7 @@ import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
 import com.wharfofwisdom.focusmediaplayer.domain.executor.KioskFactory;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.AdvertisementRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CacheRepository;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.VideoRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.GetCachedAdvertisements;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
@@ -82,6 +83,11 @@ public class AdvertisementActivity extends AppCompatActivity {
         setContentView(R.layout.activity_fullscreen);
         kiosk = KioskFactory.create(this);
         squadPosition = (Squad.POSITION) getIntent().getSerializableExtra(SQUAD);
+        //====== Wifi Direct 相關 設定======
+        startService(new Intent(this, MessageService.class));
+        P2PRepository repository = startP2PConnection();
+        receiver = repository.getReceiver();
+        //=================================
         if (kiosk instanceof InternetKiosk) {
             final AdvertisementRepository advertisementRepository = new CloudRepository(this);
             final CacheRepository cacheRepository = new RoomRepository(this);
@@ -97,14 +103,18 @@ public class AdvertisementActivity extends AppCompatActivity {
             compositeDisposable.add(kioskViewModel.start().doOnError(this::onError).subscribe());
         } else {
 
+            final SquadRepository squadRepository = repository;
+            final CacheRepository cacheRepository = new RoomRepository(this);
+            WirelessKioskViewModel kioskViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
+                @NonNull
+                @Override
+                @SuppressWarnings("unchecked")
+                public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+                    return (T) new WirelessKioskViewModel(squadRepository, cacheRepository);
+                }
+            }).get(WirelessKioskViewModel.class);
+            compositeDisposable.add(kioskViewModel.start().doOnError(this::onError).subscribe());
         }
-
-
-        //====== Wifi Direct 相關 設定======
-        startService(new Intent(this, MessageService.class));
-        P2PRepository repository = startP2PConnection();
-        receiver = repository.getReceiver();
-        //=================================
 
         //===========廣告播放 設定===========
         initPlayer();
