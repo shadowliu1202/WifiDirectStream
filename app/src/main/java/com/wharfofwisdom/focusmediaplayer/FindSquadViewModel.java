@@ -5,8 +5,8 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.squad.CreateSquad;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.squad.SearchAndJoinSquad;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.squad.Create;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.squad.SearchAndJoin;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 
@@ -34,14 +34,14 @@ public class FindSquadViewModel extends ViewModel {
     private Single<Squad.POSITION> decideSquadPosition() {
         if (hasSquad(kiosk)) {
             status.postValue("加入隊伍中...");
-            return new SearchAndJoinSquad(kiosk.squad(), repository).execute().doOnSuccess(squad -> status.postValue("成功加入隊伍:" + squad.name()));
+            return new SearchAndJoin(kiosk.squad(), repository).execute().doOnSuccess(squad -> status.postValue("成功加入隊伍:" + squad.name()));
         } else {
             if (kiosk.hasInternet()) {
                 status.postValue("創建隊伍(" + kiosk.name() + ")中...");
-                return new CreateSquad(kiosk, repository).execute().doOnSuccess(squad -> status.postValue("創建隊伍:" + squad.name()));
+                return new Create(kiosk, repository).execute().doOnSuccess(squad -> status.postValue("創建隊伍:" + squad.name()));
             } else {
                 status.postValue("尋找隊伍中...");
-                return new SearchAndJoinSquad(repository).execute().doOnSuccess(squad -> status.postValue("成功加入隊伍:" + squad.name()));
+                return new SearchAndJoin(repository).execute().doOnSuccess(squad -> status.postValue("成功加入隊伍:" + squad.name()));
             }
         }
     }

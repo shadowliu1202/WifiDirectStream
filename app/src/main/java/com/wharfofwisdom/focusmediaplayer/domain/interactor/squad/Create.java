@@ -7,11 +7,11 @@ import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 
-public class CreateSquad {
+public class Create {
     private final Kiosk soldier;
     private final SquadRepository repository;
 
-    public CreateSquad(Kiosk soldier, SquadRepository repository) {
+    public Create(Kiosk soldier, SquadRepository repository) {
         this.soldier = soldier;
         this.repository = repository;
     }

@@ -7,16 +7,17 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.text.TextUtils;
 
-import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.NetworkKiosk;
+import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.InternetKiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
+import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.WirelessKiosk;
 
 public class KioskFactory {
     public static Kiosk create(Context context) {
         //TODO : Temp use to differ Signaller/Soldier
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
-            return NetworkKiosk.createInstance(getLocalMacAddressFromWifiInfo(context));
+            return InternetKiosk.createInstance(getLocalMacAddressFromWifiInfo(context));
         }
-        return new Kiosk();
+        return new WirelessKiosk();
     }
 
     @SuppressLint("HardwareIds")

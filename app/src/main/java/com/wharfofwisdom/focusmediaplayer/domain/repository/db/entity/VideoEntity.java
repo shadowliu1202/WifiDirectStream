@@ -1,6 +1,7 @@
 package com.wharfofwisdom.focusmediaplayer.domain.repository.db.entity;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -11,6 +12,7 @@ public class VideoEntity {
     public String id = "";
     @NonNull
     public String adId = "";
+    @Nullable
     public String filePath;
 
     public static final class VideoEntityBuilder {

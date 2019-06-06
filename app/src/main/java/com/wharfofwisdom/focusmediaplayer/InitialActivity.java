@@ -20,7 +20,7 @@ import com.wharfofwisdom.focusmediaplayer.domain.executor.KioskFactory;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
-import com.wharfofwisdom.focusmediaplayer.presentation.LeaderAdvertisementActivity;
+import com.wharfofwisdom.focusmediaplayer.presentation.AdvertisementActivity;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -90,8 +90,8 @@ public class InitialActivity extends AppCompatActivity {
     private void startAdvertisement(Squad.POSITION position) {
         //TODO : Test
         Toast.makeText(this, "Start Squad as :" + position.name(), Toast.LENGTH_LONG).show();
-        Intent intent = new Intent(this, LeaderAdvertisementActivity.class);
-        startActivity(intent.putExtra(LeaderAdvertisementActivity.SQUAD, position));
+        Intent intent = new Intent(this, AdvertisementActivity.class);
+        startActivity(intent.putExtra(AdvertisementActivity.SQUAD, position));
         finish();
     }
 }

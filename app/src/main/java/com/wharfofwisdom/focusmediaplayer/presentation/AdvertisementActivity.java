@@ -3,7 +3,6 @@ package com.wharfofwisdom.focusmediaplayer.presentation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,7 +10,11 @@ import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -32,13 +35,14 @@ import com.wharfofwisdom.focusmediaplayer.demo.Entities.MediaFile;
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
 import com.wharfofwisdom.focusmediaplayer.demo.MessageService;
 import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.CacheRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.executor.KioskFactory;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.DownloadVideoFile;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.AdvertisementRepository;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.CacheRepository;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.VideoRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.GetCachedAdvertisements;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
-import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.NetworkKiosk;
+import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.InternetKiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.CloudRepository;
@@ -59,7 +63,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
 
-public class LeaderAdvertisementActivity extends AppCompatActivity {
+public class AdvertisementActivity extends AppCompatActivity {
 
     public static final String SQUAD = "SQUAD";
     private SimpleExoPlayer player;
@@ -68,7 +72,6 @@ public class LeaderAdvertisementActivity extends AppCompatActivity {
     private final IntentFilter intentFilter = new IntentFilter();
     private WifiP2PReceiver receiver;
     public static boolean isMaster = true;
-    private File file;
     private Squad.POSITION squadPosition;
     private Kiosk kiosk;
     private InetAddress ownerAddress;
@@ -77,6 +80,25 @@ public class LeaderAdvertisementActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fullscreen);
+        kiosk = KioskFactory.create(this);
+        squadPosition = (Squad.POSITION) getIntent().getSerializableExtra(SQUAD);
+        if (kiosk instanceof InternetKiosk) {
+            final AdvertisementRepository advertisementRepository = new CloudRepository(this);
+            final CacheRepository cacheRepository = new RoomRepository(this);
+            final VideoRepository videoRepository = new CloudRepository(this);
+            InternetKioskViewModel kioskViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
+                @NonNull
+                @Override
+                @SuppressWarnings("unchecked")
+                public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+                    return (T) new InternetKioskViewModel(advertisementRepository, cacheRepository, videoRepository);
+                }
+            }).get(InternetKioskViewModel.class);
+            compositeDisposable.add(kioskViewModel.start().doOnError(this::onError).subscribe());
+        } else {
+
+        }
+
 
         //====== Wifi Direct 相關 設定======
         startService(new Intent(this, MessageService.class));
@@ -86,25 +108,12 @@ public class LeaderAdvertisementActivity extends AppCompatActivity {
 
         //===========廣告播放 設定===========
         initPlayer();
-        squadPosition = (Squad.POSITION) getIntent().getSerializableExtra(SQUAD);
-        kiosk = KioskFactory.create(this);
-        compositeDisposable.add(kiosk.start().retry().doOnError(this::onError).subscribe());
-        compositeDisposable.add(new DownloadVideoFile(new CloudRepository(this), Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596984200-健檢篇.mp4"))
-                .execute()
-                .doOnSuccess(file -> this.file = file)
-                .map(this::createVideoListFromLocal)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::playVideoFromCache, Throwable::printStackTrace));
         compositeDisposable.add(new GetCachedAdvertisements(new RoomRepository(this))
                 .execute().subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::playAdvertisements));
         //=================================
 
-        //===============測試用=============
-        findViewById(R.id.fb_send).setOnClickListener(v -> sendFile(file));
-        initAdvertisement();
-        //=================================
     }
 
     private void onError(Throwable throwable) {
@@ -134,13 +143,6 @@ public class LeaderAdvertisementActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(receiver);
-    }
-
-    private void initAdvertisement() {
-        CacheRepository advertisementRepository = new RoomRepository(this);
-        advertisementRepository.setAdvertisements(getAdvertisementList()).subscribeOn(Schedulers.io()).subscribe(() -> {
-
-        }, Throwable::printStackTrace);
     }
 
     private void playAdvertisements(List<Advertisement> advertisements) {
@@ -174,7 +176,7 @@ public class LeaderAdvertisementActivity extends AppCompatActivity {
     }
 
     public void sendMessage(String message, String identity) {
-        if (kiosk instanceof NetworkKiosk) {
+        if (kiosk instanceof InternetKiosk) {
             Message mes = new Message(Message.TEXT_MESSAGE, "Welcome", null, "Owner");
             mes.setUser_record("Owner");
             Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
@@ -216,53 +218,6 @@ public class LeaderAdvertisementActivity extends AppCompatActivity {
         return Single.just(advertisement.video());
     }
 
-    private List<Video> createVideoListFromLocal(File file) {
-        List<Video> videos = new ArrayList<>();
-        videos.add(Video.builder()
-                .index(0)
-                .id("5915bd7d7ce91c3851f43c5f")
-                .name("健檢篇")
-                //.url(Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596928064-人生走馬燈篇.mp4"))
-                .url(Uri.fromFile(file))
-                .build());
-        return videos;
-    }
-
-
-    private List<Advertisement> getAdvertisementList() {
-        List<Advertisement> advertisements = new ArrayList<>();
-        advertisements.add(Advertisement.builder()
-                .id("1")
-                .index(0)
-                .video(Video.builder()
-                        .index(0)
-                        .id("5915bd627ce91c3851f43c5e")
-                        .name("人生走馬燈篇")
-                        .url(Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596928064-人生走馬燈篇.mp4"))
-                        .build())
-                .build());
-        advertisements.add(Advertisement.builder()
-                .id("5915bd627ce91c3851f43c5e")
-                .index(1)
-                .video(Video.builder()
-                        .index(1)
-                        .id("5915bd7d7ce91c3851f43c5f")
-                        .name("健檢篇")
-                        .url(Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596984200-健檢篇.mp4"))
-                        .build())
-                .build());
-        advertisements.add(Advertisement.builder()
-                .index(2)
-                .id("2")
-                .video(Video.builder().id("df1c790ae436eb1ff374103e5d8bbf44")
-                        .index(2)
-                        .name("財政部國稅局")
-                        .url(Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494597036850-憑證報稅台.mp4"))
-                        .build())
-                .build());
-        return advertisements;
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -282,24 +237,4 @@ public class LeaderAdvertisementActivity extends AppCompatActivity {
         player.prepare(concatenatedSource);
         player.setPlayWhenReady(true);
     }
-
-
-    //        AdvertisementViewModel viewModel = ViewModelProviders.of(this).get(AdvertisementViewModel.class);
-//        viewModel.getPlayList().observe(this, this::playVideoFromCache);
-//        compositeDisposable.add(Flowable.fromIterable(getAdvertisementList())
-//                .subscribeOn(Schedulers.io())
-//                .flatMap(advertisement -> {
-//                    Log.d("Test", "Get:" + advertisement.video().name());
-//                    if (downloadTracker.isDownloaded(advertisement.video().url())) {
-//                        return Flowable.just(advertisement.video());
-//                    }
-//                    return download(advertisement).toFlowable();
-//                }).subscribe(viewModel::addToPlayList, Throwable::printStackTrace));
-//
-//        try {
-//            DownloadService.start(this, DemoDownloadService.class);
-//        } catch (IllegalStateException e) {
-//            DownloadService.startForeground(this, DemoDownloadService.class);
-//        }
-
 }

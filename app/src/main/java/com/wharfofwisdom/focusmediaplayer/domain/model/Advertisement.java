@@ -24,4 +24,6 @@ public abstract class Advertisement {
 
         public abstract Advertisement build();
     }
+
+
 }

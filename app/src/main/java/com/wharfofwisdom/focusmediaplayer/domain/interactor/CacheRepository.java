@@ -9,10 +9,11 @@ import io.reactivex.Completable;
 import io.reactivex.Flowable;
 
 public interface CacheRepository {
-    Flowable<List<Advertisement>> getAdvertisements();
 
     Completable addVideoCache(File file, String advertisementId, String videoId);
 
     Completable setAdvertisements(List<Advertisement> advertisements);
+
+    Flowable<List<Advertisement>> getNotDownloadAdvertisement(List<Advertisement> advertisements);
 
 }

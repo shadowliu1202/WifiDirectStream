@@ -6,16 +6,16 @@ import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 
-public class SearchAndJoinSquad {
+public class SearchAndJoin {
     private final SquadRepository repository;
     private final String name;
 
-    public SearchAndJoinSquad(Squad squad, SquadRepository repository) {
+    public SearchAndJoin(Squad squad, SquadRepository repository) {
         this.name = squad.name();
         this.repository = repository;
     }
 
-    public SearchAndJoinSquad(SquadRepository repository) {
+    public SearchAndJoin(SquadRepository repository) {
         this.name = "";
         this.repository = repository;
     }

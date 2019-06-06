@@ -6,9 +6,9 @@ import io.reactivex.Completable;
 import io.reactivex.Flowable;
 
 /**
- * Solider : Consider as Kiosk without Internet connection.
+ * Kiosk : Consider as a General Kiosk.
  */
-public class Kiosk {
+public abstract class Kiosk {
 
     protected Squad squad = Squad.NO_SQUAD;
 

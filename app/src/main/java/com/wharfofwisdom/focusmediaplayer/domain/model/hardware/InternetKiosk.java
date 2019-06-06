@@ -1,13 +1,13 @@
 package com.wharfofwisdom.focusmediaplayer.domain.model.hardware;
 
 /**
- * Solider : Consider as a Kiosk has Internet connection.
+ * InternetKiosk : Consider as a Kiosk has Internet connection.
  */
-public final class NetworkKiosk extends Kiosk {
-    private static final NetworkKiosk instance = new NetworkKiosk();
+public final class InternetKiosk extends Kiosk {
+    private static final InternetKiosk instance = new InternetKiosk();
     private String mac;
 
-    public static NetworkKiosk createInstance(String mac) {
+    public static InternetKiosk createInstance(String mac) {
         instance.mac = parseLastMac(mac);
         return instance;
     }

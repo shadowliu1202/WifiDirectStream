@@ -1,36 +1,29 @@
 package com.wharfofwisdom.focusmediaplayer.domain.repository.db;
 
 import android.content.Context;
-import android.util.Log;
 
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.AdvertisementRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CacheRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
+import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.dao.AdvertisementDao;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.entity.VideoEntity;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.mapper.AdvertisementMapper;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.functions.Function;
 
-public class RoomRepository implements CacheRepository {
+public class RoomRepository implements CacheRepository, AdvertisementRepository {
     private final AdvertisementDao advertisementDao;
 
     public RoomRepository(Context context) {
         advertisementDao = FocusMediaDatabase.getDatabase(context).advertisementDao();
-
-        advertisementDao.getVideos().subscribeOn(Schedulers.io())
-                .subscribe(new Consumer<List<VideoEntity>>() {
-                    @Override
-                    public void accept(List<VideoEntity> videoEntities) throws Exception {
-                        Log.d("test", "get:" + videoEntities.size());
-                    }
-                }, Throwable::printStackTrace);
-
     }
 
     @Override
@@ -48,5 +41,33 @@ public class RoomRepository implements CacheRepository {
     @Override
     public Completable setAdvertisements(List<Advertisement> advertisements) {
         return advertisementDao.saveAdvertisements(AdvertisementMapper.convertToEntity(advertisements));
+    }
+
+    @Override
+    public Flowable<List<Advertisement>> getNotDownloadAdvertisement(final List<Advertisement> advertisements) {
+        String[] ads = new String[advertisements.size()];
+        for (int i = 0; i < advertisements.size(); i++) {
+            ads[i] = advertisements.get(i).id();
+        }
+        return advertisementDao.getDownloadedVideos().map(videoEntities -> {
+            Iterator<Advertisement> iterator = advertisements.iterator();
+            while (iterator.hasNext()) {
+                Advertisement advertisement = iterator.next();
+                if (isVideoExist(advertisement, videoEntities)) {
+                    iterator.remove();
+                }
+            }
+            return advertisements;
+        });
+    }
+
+    private boolean isVideoExist(Advertisement advertisement, List<VideoEntity> videoEntities) {
+        for (VideoEntity videoEntity : videoEntities) {
+            if (advertisement.id().equals(videoEntity.adId)) {
+                File file = new File(videoEntity.filePath);
+                return file.exists() && file.isFile();
+            }
+        }
+        return false;
     }
 }

@@ -40,7 +40,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".presentation.LeaderAdvertisementActivity"
+            android:name=".presentation.AdvertisementActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name"
             android:theme="@style/FullscreenTheme"></activity>
