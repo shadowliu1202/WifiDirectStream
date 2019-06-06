@@ -14,7 +14,7 @@ public class ServerInit extends Thread {
 	public static ArrayList<InetAddress> clients;
 	private ServerSocket serverSocket;
 	public ServerInit(){
-		clients = new ArrayList<InetAddress>();
+		clients = new ArrayList<>();
 	}
 
 	@Override

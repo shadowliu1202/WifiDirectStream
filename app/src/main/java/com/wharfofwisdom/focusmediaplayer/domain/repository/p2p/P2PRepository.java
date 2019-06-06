@@ -9,7 +9,12 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.net.wifi.p2p.nsd.WifiP2pServiceRequest;
+import android.os.AsyncTask;
+import android.util.Log;
 
+import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageClient;
+import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageServer;
+import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Mission;
@@ -64,6 +69,49 @@ public class P2PRepository implements SquadRepository {
             }
         });
     }
+
+    @Override
+    public Completable request(Mission mission) {
+        return sendToServer(mission);
+    }
+
+    private Completable sendToClient(Mission mission) {
+        return Completable.fromAction(() -> {
+            Message mes = new Message(Message.TEXT_MESSAGE, mission.message(), null, mission.mission());
+            Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
+            new SendMessageServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+        });
+    }
+
+    private Completable sendToServer(Mission mission) {
+        return Completable.create(emitter -> mManager.requestConnectionInfo(mChannel, info -> {
+            Message mes = new Message(Message.TEXT_MESSAGE, mission.message(), null, mission.mission());
+            Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
+            new SendMessageClient(info.groupOwnerAddress).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+            emitter.onComplete();
+        }));
+    }
+
+//    public void sendMessage(String message) {
+//        Message mes = new Message(Message.TEXT_MESSAGE, "Welcome", null, "Owner");
+//        mes.setChatName(message.);
+//        mes.setUser_record("Owner");
+//        Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
+//        new SendMessageServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+//    }
+//
+//    private void sendFile(File file) {
+//        Message mes = new Message(Message.FILE_MESSAGE, "test", null, "Owner");
+//        MediaFile mediaFile = new MediaFile(this, file.getPath(), Message.FILE_MESSAGE);
+//        mes.setByteArray(mediaFile.fileToByteArray());
+//        mes.setFileName(mediaFile.getFileName());
+//        mes.setChatName("5915bd627ce91c3851f43c5e");
+//        mes.setmText("人生走馬燈篇");
+//        if (isMaster) {
+//            Log.e("test", "Message hydrated, start SendMessageServer AsyncTask");
+//            new SendMessageServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+//        }
+//    }
 
     @Override
     public Flowable<Mission> waitCommand() {

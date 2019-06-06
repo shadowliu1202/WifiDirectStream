@@ -19,7 +19,7 @@ public class WirelessKioskViewModel extends ViewModel {
     }
 
     //附屬連網機-啟動順序
-    public Completable start() {
+    Completable start() {
         //要求這禮拜的播放清單
         return new Report(squadRepository, new RequestPlayList()).execute();
     }

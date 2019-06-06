@@ -71,7 +71,7 @@ public class ReceiveMessageServer extends AbstractReceiver {
             values[0].saveByteArrayToFile(mContext);
         }
 
-        new SendMessageServer(mContext, false).executeOnExecutor(THREAD_POOL_EXECUTOR, values);
+        new SendMessageServer().executeOnExecutor(THREAD_POOL_EXECUTOR, values);
         Log.e("Test", "onProgressUpdate Server Receive" + values[0].getmText());
         Toast.makeText(mContext.getApplicationContext(), "Get Message : " + values[0].getmText() + ":" + values[0].getChatName(), Toast.LENGTH_SHORT).show();
     }

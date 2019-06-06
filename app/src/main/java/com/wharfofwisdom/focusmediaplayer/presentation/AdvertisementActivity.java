@@ -102,7 +102,6 @@ public class AdvertisementActivity extends AppCompatActivity {
             }).get(InternetKioskViewModel.class);
             compositeDisposable.add(kioskViewModel.start().doOnError(this::onError).subscribe());
         } else {
-
             final SquadRepository squadRepository = repository;
             final CacheRepository cacheRepository = new RoomRepository(this);
             WirelessKioskViewModel kioskViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
@@ -185,33 +184,33 @@ public class AdvertisementActivity extends AppCompatActivity {
         return new P2PRepository(mManager, mChannel);
     }
 
-    public void sendMessage(String message, String identity) {
-        if (kiosk instanceof InternetKiosk) {
-            Message mes = new Message(Message.TEXT_MESSAGE, "Welcome", null, "Owner");
-            mes.setUser_record("Owner");
-            Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
-            new SendMessageServer(this, true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
-        } else {
-            Message mes = new Message(Message.TEXT_MESSAGE, "Banjo", null, "Client");
-            mes.setUser_record("Client");
-            Log.d("test", "sendMessage:" + ownerAddress);
-            new SendMessageClient(this, ownerAddress).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
-            Log.e("Test", "Message hydrated, start SendMessageClient AsyncTask");
-        }
-    }
-
-    private void sendFile(File file) {
-        Message mes = new Message(Message.FILE_MESSAGE, "test", null, "Owner");
-        MediaFile mediaFile = new MediaFile(this, file.getPath(), Message.FILE_MESSAGE);
-        mes.setByteArray(mediaFile.fileToByteArray());
-        mes.setFileName(mediaFile.getFileName());
-        mes.setChatName("5915bd627ce91c3851f43c5e");
-        mes.setmText("人生走馬燈篇");
-        if (isMaster) {
-            Log.e("test", "Message hydrated, start SendMessageServer AsyncTask");
-            new SendMessageServer(this, true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
-        }
-    }
+//    public void sendMessage(String message, String identity) {
+//        if (kiosk instanceof InternetKiosk) {
+//            Message mes = new Message(Message.TEXT_MESSAGE, "Welcome", null, "Owner");
+//            mes.setUser_record("Owner");
+//            Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
+//            new SendMessageServer(true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+//        } else {
+//            Message mes = new Message(Message.TEXT_MESSAGE, "Banjo", null, "Client");
+//            mes.setUser_record("Client");
+//            Log.d("test", "sendMessage:" + ownerAddress);
+//            new SendMessageClient(this, ownerAddress).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+//            Log.e("Test", "Message hydrated, start SendMessageClient AsyncTask");
+//        }
+//    }
+//
+//    private void sendFile(File file) {
+//        Message mes = new Message(Message.FILE_MESSAGE, "test", null, "Owner");
+//        MediaFile mediaFile = new MediaFile(this, file.getPath(), Message.FILE_MESSAGE);
+//        mes.setByteArray(mediaFile.fileToByteArray());
+//        mes.setFileName(mediaFile.getFileName());
+//        mes.setChatName("5915bd627ce91c3851f43c5e");
+//        mes.setmText("人生走馬燈篇");
+//        if (isMaster) {
+//            Log.e("test", "Message hydrated, start SendMessageServer AsyncTask");
+//            new SendMessageServer(true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
+//        }
+//    }
 
     private Single<Video> download(final Advertisement advertisement) {
         DownloadService.sendAddDownload(this, DemoDownloadService.class,

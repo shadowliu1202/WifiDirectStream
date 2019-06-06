@@ -4,10 +4,16 @@ import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Mission;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 
 public interface SquadRepository {
+
+    /**
+     *  Send Request To Leader
+     */
+    Completable request(Mission mission);
 
     Flowable<Mission> waitCommand();
 

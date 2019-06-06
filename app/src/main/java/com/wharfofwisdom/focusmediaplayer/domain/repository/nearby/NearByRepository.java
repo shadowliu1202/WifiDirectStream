@@ -29,6 +29,7 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 
 import io.reactivex.BackpressureStrategy;
+import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.reactivex.subjects.ReplaySubject;
@@ -52,6 +53,11 @@ public class NearByRepository implements SquadRepository {
 
     private NearByRepository(Context context) {
         connectionsClient = Nearby.getConnectionsClient(context);
+    }
+
+    @Override
+    public Completable request(Mission mission) {
+        return null;
     }
 
     @Override
