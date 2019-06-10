@@ -1,10 +1,10 @@
 package com.wharfofwisdom.focusmediaplayer.presentation;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.p2p.WifiP2pManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -28,11 +29,7 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.util.Util;
 import com.wharfofwisdom.focusmediaplayer.DemoApplication;
 import com.wharfofwisdom.focusmediaplayer.R;
-import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageClient;
-import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageServer;
 import com.wharfofwisdom.focusmediaplayer.demo.ClientInit;
-import com.wharfofwisdom.focusmediaplayer.demo.Entities.MediaFile;
-import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
 import com.wharfofwisdom.focusmediaplayer.demo.MessageService;
 import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
 import com.wharfofwisdom.focusmediaplayer.domain.executor.KioskFactory;
@@ -52,7 +49,6 @@ import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
 import com.wharfofwisdom.focusmediaplayer.presentation.service.DemoDownloadService;
 
-import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -72,6 +68,7 @@ public class AdvertisementActivity extends AppCompatActivity {
     private ConcatenatingMediaSource concatenatedSource = new ConcatenatingMediaSource();
     private final IntentFilter intentFilter = new IntentFilter();
     private WifiP2PReceiver receiver;
+    private BroadcastReceiver messageReceiver;
     public static boolean isMaster = true;
     private Squad.POSITION squadPosition;
     private Kiosk kiosk;
@@ -87,6 +84,7 @@ public class AdvertisementActivity extends AppCompatActivity {
         startService(new Intent(this, MessageService.class));
         P2PRepository repository = startP2PConnection();
         receiver = repository.getReceiver();
+        messageReceiver = repository.getBroadcastReceiver();
         //=================================
         if (kiosk instanceof InternetKiosk) {
             final AdvertisementRepository advertisementRepository = new CloudRepository(this);
@@ -145,6 +143,7 @@ public class AdvertisementActivity extends AppCompatActivity {
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         registerReceiver(receiver, intentFilter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, new IntentFilter("NOW"));
     }
 
 
@@ -152,6 +151,7 @@ public class AdvertisementActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(receiver);
+        unregisterReceiver(messageReceiver);
     }
 
     private void playAdvertisements(List<Advertisement> advertisements) {

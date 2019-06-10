@@ -1,5 +1,8 @@
 package com.wharfofwisdom.focusmediaplayer.domain.repository.p2p;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
 import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
@@ -16,6 +19,7 @@ import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageClient;
 import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageServer;
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.MissionFactory;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Mission;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
@@ -25,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.reactivex.BackpressureStrategy;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
@@ -36,7 +41,9 @@ public class P2PRepository implements SquadRepository {
     private final WifiP2pManager mManager;
     private final WifiP2pManager.Channel mChannel;
     private final WifiP2PReceiver receiver;
+    private final BroadcastReceiver broadcastReceiver;
     private PublishSubject<WifiP2pInfo> p2pInfoPublishSubject = PublishSubject.create();
+    private PublishSubject<Mission> missionPublishSubject = PublishSubject.create();
 
     public P2PRepository(WifiP2pManager mManager, WifiP2pManager.Channel mChannel) {
         this.mManager = mManager;
@@ -68,6 +75,13 @@ public class P2PRepository implements SquadRepository {
 
             }
         });
+
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                missionPublishSubject.onNext(MissionFactory.create(intent.getStringExtra("mission")));
+            }
+        };
     }
 
     @Override
@@ -86,7 +100,6 @@ public class P2PRepository implements SquadRepository {
     private Completable sendToServer(Mission mission) {
         return Completable.create(emitter -> mManager.requestConnectionInfo(mChannel, info -> {
             Message mes = new Message(Message.TEXT_MESSAGE, mission.message(), null, mission.mission());
-            Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
             new SendMessageClient(info.groupOwnerAddress).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
             emitter.onComplete();
         }));
@@ -115,7 +128,7 @@ public class P2PRepository implements SquadRepository {
 
     @Override
     public Flowable<Mission> waitCommand() {
-        return Flowable.empty();
+        return missionPublishSubject.toFlowable(BackpressureStrategy.LATEST);
     }
 
     @Override
@@ -268,5 +281,9 @@ public class P2PRepository implements SquadRepository {
 
     public WifiP2PReceiver getReceiver() {
         return receiver;
+    }
+
+    public BroadcastReceiver getBroadcastReceiver() {
+        return broadcastReceiver;
     }
 }

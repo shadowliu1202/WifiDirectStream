@@ -8,8 +8,10 @@ import com.wharfofwisdom.focusmediaplayer.domain.interactor.VideoRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.SyncVideosCache;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.CacheAdvertisements;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.GetAdvertisements;
+import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Mission;
 
 import io.reactivex.Completable;
+import io.reactivex.Flowable;
 
 class InternetKioskViewModel extends ViewModel {
     private final AdvertisementRepository advertisementRepository;
@@ -32,5 +34,10 @@ class InternetKioskViewModel extends ViewModel {
         return new GetAdvertisements(advertisementRepository).execute()
                 .flatMap(advertisements -> new CacheAdvertisements(advertisements, cacheRepository).execute())
                 .flatMapCompletable(advertisements -> new SyncVideosCache(advertisements, cacheRepository, videoRepository).execute());
+    }
+
+    public Flowable<Mission> waiting() {
+        //等待
+        return Flowable.never();
     }
 }
