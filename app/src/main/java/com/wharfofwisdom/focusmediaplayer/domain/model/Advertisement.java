@@ -1,6 +1,8 @@
 package com.wharfofwisdom.focusmediaplayer.domain.model;
 
 import com.google.auto.value.AutoValue;
+import com.google.gson.Gson;
+import com.google.gson.TypeAdapter;
 
 @AutoValue
 public abstract class Advertisement {
@@ -25,5 +27,7 @@ public abstract class Advertisement {
         public abstract Advertisement build();
     }
 
-
+    public static TypeAdapter<Advertisement> typeAdapter(Gson gson) {
+        return new AutoValue_Advertisement.GsonTypeAdapter(gson);
+    }
 }

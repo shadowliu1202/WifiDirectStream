@@ -78,7 +78,7 @@ public class P2PRepository implements SquadRepository {
         broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                missionPublishSubject.onNext(MissionFactory.create(intent.getStringExtra("mission")));
+                missionPublishSubject.onNext(MissionFactory.create(intent.getStringExtra("mission"), intent.getStringExtra("message")));
             }
         };
     }

@@ -72,8 +72,8 @@ public class ReceiveMessageServer extends AbstractReceiver {
             values[0].saveByteArrayToFile(mContext);
         }
         Intent in = new Intent();
-        in.putExtra("mission", values[0].getmText());
-        in.putExtra("from", values[0].getChatName());
+        in.putExtra("message", values[0].getmText());
+        in.putExtra("mission", values[0].getChatName());
         in.setAction("NOW");
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
         new SendMessageServer().executeOnExecutor(THREAD_POOL_EXECUTOR, values);

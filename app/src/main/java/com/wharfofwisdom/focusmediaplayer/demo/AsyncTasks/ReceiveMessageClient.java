@@ -80,8 +80,8 @@ public class ReceiveMessageClient extends AbstractReceiver {
                     .subscribe();
         }
         Intent in = new Intent();
-        in.putExtra("mission", values[0].getmText());
-        in.putExtra("from", values[0].getChatName());
+        in.putExtra("message", values[0].getmText());
+        in.putExtra("mission", values[0].getChatName());
         in.setAction("NOW");
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
         Toast.makeText(mContext, values[0].getmText(), Toast.LENGTH_SHORT).show();

@@ -71,7 +71,7 @@ public class CloudRepository implements VideoRepository, AdvertisementRepository
                         .index(0)
                         .id("5915bd627ce91c3851f43c5e")
                         .name("人生走馬燈篇")
-                        .url(Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596928064-人生走馬燈篇.mp4"))
+                        .url("https://focusmedia-kiosk.s3.amazonaws.com/1494596928064-人生走馬燈篇.mp4")
                         .build())
                 .build());
         advertisements.add(Advertisement.builder()
@@ -81,7 +81,7 @@ public class CloudRepository implements VideoRepository, AdvertisementRepository
                         .index(1)
                         .id("5915bd7d7ce91c3851f43c5f")
                         .name("健檢篇")
-                        .url(Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494596984200-健檢篇.mp4"))
+                        .url("https://focusmedia-kiosk.s3.amazonaws.com/1494596984200-健檢篇.mp4")
                         .build())
                 .build());
         advertisements.add(Advertisement.builder()
@@ -90,7 +90,7 @@ public class CloudRepository implements VideoRepository, AdvertisementRepository
                 .video(Video.builder().id("df1c790ae436eb1ff374103e5d8bbf44")
                         .index(2)
                         .name("財政部國稅局")
-                        .url(Uri.parse("https://focusmedia-kiosk.s3.amazonaws.com/1494597036850-憑證報稅台.mp4"))
+                        .url("https://focusmedia-kiosk.s3.amazonaws.com/1494597036850-憑證報稅台.mp4")
                         .build())
                 .build());
         return advertisements;

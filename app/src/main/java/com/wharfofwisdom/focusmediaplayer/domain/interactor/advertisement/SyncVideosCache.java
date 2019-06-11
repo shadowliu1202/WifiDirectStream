@@ -1,5 +1,6 @@
 package com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement;
 
+import android.net.Uri;
 import android.util.Log;
 
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CacheRepository;
@@ -32,7 +33,7 @@ public class SyncVideosCache {
     }
 
     private Completable download(final Advertisement advertisements) {
-        return new DownloadVideoFile(videoRepository, advertisements.video().url()).execute()
+        return new DownloadVideoFile(videoRepository, Uri.parse(advertisements.video().url())).execute()
                 .flatMapCompletable(file -> saveToDb(file, advertisements));
     }
 

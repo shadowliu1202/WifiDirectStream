@@ -1,6 +1,7 @@
 package com.wharfofwisdom.focusmediaplayer.domain.repository.db.mapper;
 
 import android.net.Uri;
+import android.text.TextUtils;
 
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
@@ -19,7 +20,7 @@ public class AdvertisementMapper {
             if (adEntity.videos.size() > 0) {
                 Video video = Video.builder()
                         .id(adEntity.videos.get(0).id).index(adEntity.order).name("video")
-                        .url(Uri.fromFile(new File(adEntity.videos.get(0).filePath)))
+                        .url(Uri.fromFile(new File(adEntity.videos.get(0).filePath)).getPath())
                         .build();
                 list.add(Advertisement.builder()
                         .index(++index)

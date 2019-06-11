@@ -4,6 +4,7 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Transaction;
 
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.entity.AdEntity;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.entity.AdWithVideo;
@@ -16,6 +17,7 @@ import io.reactivex.Flowable;
 
 @Dao
 public interface AdvertisementDao {
+    @Transaction
     @Query("SELECT id, `order` FROM AdEntity ORDER BY `order` DESC")
     Flowable<List<AdWithVideo>> getAdvertisements();
 

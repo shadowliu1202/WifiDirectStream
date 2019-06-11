@@ -1,11 +1,14 @@
 package com.wharfofwisdom.focusmediaplayer.presentation;
 
+import android.util.Log;
+
 import androidx.lifecycle.ViewModel;
 
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CacheRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.action.ReportPlayList;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.mission.RequestPlayList;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.mission.UpdatePlayList;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.squad.Report;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.squad.Waiting;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Mission;
@@ -42,6 +45,9 @@ public class WirelessKioskViewModel extends ViewModel {
     }
 
     private Flowable<Mission> doMission(Squad squad, Mission mission) {
+        if (mission instanceof UpdatePlayList) {
+            Log.d("test", "Get UpdatePlayList:" + mission.message());
+        }
         return Flowable.never();
     }
 

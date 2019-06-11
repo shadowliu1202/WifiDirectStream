@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -149,7 +150,6 @@ public class AdvertisementActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d("Test", "onResume");
         findViewById(R.id.fullscreen_content).setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -164,7 +164,6 @@ public class AdvertisementActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d("Test", "onPause");
         unregisterReceiver(receiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
     }
@@ -231,7 +230,7 @@ public class AdvertisementActivity extends AppCompatActivity {
         DownloadService.sendAddDownload(this, DemoDownloadService.class,
                 new DownloadRequest(advertisement.video().id(),
                         DownloadRequest.TYPE_PROGRESSIVE,
-                        advertisement.video().url(),
+                        Uri.parse(advertisement.video().url()),
                         /* streamKeys= */ Collections.emptyList(),
                         /* customCacheKey= */ null,
                         Util.getUtf8Bytes(advertisement.video().name())),
@@ -254,7 +253,7 @@ public class AdvertisementActivity extends AppCompatActivity {
         DataSource.Factory dataSourceFactory = ((DemoApplication) getApplication()).buildDataSourceFactory();
         List<MediaSource> mediaSources = new ArrayList<>();
         for (Video playInfo : playListResponses) {
-            mediaSources.add(new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(playInfo.url()));
+            mediaSources.add(new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(playInfo.url())));
         }
         concatenatedSource.clear();
         concatenatedSource.addMediaSources(mediaSources);
