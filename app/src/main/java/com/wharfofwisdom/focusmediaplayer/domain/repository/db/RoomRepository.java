@@ -5,8 +5,8 @@ import android.content.Context;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.AdvertisementRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CacheRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
-import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.dao.AdvertisementDao;
+import com.wharfofwisdom.focusmediaplayer.domain.repository.db.entity.AdWithVideo;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.entity.VideoEntity;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.mapper.AdvertisementMapper;
 
@@ -42,21 +42,8 @@ public class RoomRepository implements CacheRepository, AdvertisementRepository 
     }
 
     @Override
-    public Flowable<List<Video>> getNotDownloadVideo(List<Advertisement> advertisements) {
-        String[] ads = new String[advertisements.size()];
-        for (int i = 0; i < advertisements.size(); i++) {
-            ads[i] = advertisements.get(i).id();
-        }
-        return advertisementDao.getNotDownloadedVideos(ads).map(AdvertisementMapper::convertVideos);
-    }
-
-    @Override
     public Flowable<List<Advertisement>> getNotDownloadAdvertisement(final List<Advertisement> advertisements) {
-        String[] ads = new String[advertisements.size()];
-        for (int i = 0; i < advertisements.size(); i++) {
-            ads[i] = advertisements.get(i).id();
-        }
-        return advertisementDao.getNotDownloadedVideos(ads).map(videoEntities -> {
+        return advertisementDao.getAdvertisements().map(videoEntities -> {
             Iterator<Advertisement> iterator = advertisements.iterator();
             while (iterator.hasNext()) {
                 Advertisement advertisement = iterator.next();
@@ -68,10 +55,10 @@ public class RoomRepository implements CacheRepository, AdvertisementRepository 
         });
     }
 
-    private boolean isVideoExist(Advertisement advertisement, List<VideoEntity> videoEntities) {
-        for (VideoEntity videoEntity : videoEntities) {
-            if (advertisement.id().equals(videoEntity.adId)) {
-                File file = new File(videoEntity.filePath);
+    private boolean isVideoExist(Advertisement advertisement, List<AdWithVideo> adWithVideos) {
+        for (AdWithVideo adWithVideo : adWithVideos) {
+            if (advertisement.id().equals(adWithVideo.id) && adWithVideo.videos.size() > 0) {
+                File file = new File(adWithVideo.videos.get(0).filePath);
                 return file.exists() && file.isFile();
             }
         }

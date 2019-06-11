@@ -2,7 +2,7 @@ package com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement;
 
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CacheRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
-import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
+
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ public class GetLackedVideos {
         this.advertisements = advertisements;
     }
 
-    public Flowable<List<Video>> execute() {
-        return cacheRepository.getNotDownloadVideo(advertisements).subscribeOn(Schedulers.io());
+    public Flowable<List<Advertisement>> execute() {
+        return cacheRepository.getNotDownloadAdvertisement(advertisements).subscribeOn(Schedulers.io());
     }
 }

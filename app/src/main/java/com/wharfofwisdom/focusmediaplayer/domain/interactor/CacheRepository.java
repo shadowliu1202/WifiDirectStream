@@ -15,8 +15,6 @@ public interface CacheRepository {
 
     Completable setAdvertisements(final List<Advertisement> advertisements);
 
-    Flowable<List<Video>> getNotDownloadVideo(final List<Advertisement> advertisements);
-
     Flowable<List<Advertisement>> getNotDownloadAdvertisement(final List<Advertisement> advertisements);
 
 }

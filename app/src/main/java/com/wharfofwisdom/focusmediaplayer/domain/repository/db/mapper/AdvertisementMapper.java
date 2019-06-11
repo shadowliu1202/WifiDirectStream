@@ -15,11 +15,10 @@ import java.util.List;
 public class AdvertisementMapper {
     public static List<Advertisement> convert(List<AdWithVideo> adEntities) {
         List<Advertisement> list = new ArrayList<>();
-        int index = 0;
         for (AdWithVideo adEntity : adEntities) {
             list.add(Advertisement.builder()
-                    .index(++index)
-                    .id(String.valueOf(index))
+                    .index(adEntity.order)
+                    .id(adEntity.id)
                     .video(adEntity.videos.size() > 0 ? convert(adEntity.videos.get(0)) : Video.EMPTY).build());
         }
         return list;
