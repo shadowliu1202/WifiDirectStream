@@ -42,6 +42,8 @@ import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.InternetKiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
+import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Follower;
+import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Leader;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.CloudRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.RoomRepository;
@@ -73,6 +75,7 @@ public class AdvertisementActivity extends AppCompatActivity {
     private Squad.POSITION squadPosition;
     private Kiosk kiosk;
     private InetAddress ownerAddress;
+    private P2PRepository p2pRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,10 +84,10 @@ public class AdvertisementActivity extends AppCompatActivity {
         kiosk = KioskFactory.create(this);
         squadPosition = (Squad.POSITION) getIntent().getSerializableExtra(SQUAD);
         //====== Wifi Direct 相關 設定======
-        startService(new Intent(this, MessageService.class));
-        P2PRepository repository = startP2PConnection();
-        receiver = repository.getReceiver();
-        messageReceiver = repository.getBroadcastReceiver();
+
+        p2pRepository = startP2PConnection();
+        receiver = p2pRepository.getReceiver();
+        messageReceiver = p2pRepository.getBroadcastReceiver();
         //=================================
         if (kiosk instanceof InternetKiosk) {
             final AdvertisementRepository advertisementRepository = new CloudRepository(this);
@@ -95,12 +98,14 @@ public class AdvertisementActivity extends AppCompatActivity {
                 @Override
                 @SuppressWarnings("unchecked")
                 public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-                    return (T) new InternetKioskViewModel(advertisementRepository, cacheRepository, videoRepository);
+                    return (T) new InternetKioskViewModel(advertisementRepository, cacheRepository, videoRepository, p2pRepository);
                 }
             }).get(InternetKioskViewModel.class);
+            kioskViewModel.setSquad(Leader.builder().name("leader").address("test").build());
             compositeDisposable.add(kioskViewModel.start().doOnError(this::onError).subscribe());
+            compositeDisposable.add(kioskViewModel.waiting().doOnError(this::onError).subscribe());
         } else {
-            final SquadRepository squadRepository = repository;
+            final SquadRepository squadRepository = p2pRepository;
             final CacheRepository cacheRepository = new RoomRepository(this);
             WirelessKioskViewModel kioskViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
                 @NonNull
@@ -110,7 +115,9 @@ public class AdvertisementActivity extends AppCompatActivity {
                     return (T) new WirelessKioskViewModel(squadRepository, cacheRepository);
                 }
             }).get(WirelessKioskViewModel.class);
+            kioskViewModel.setSquad(Follower.builder().name("follower").address("test").build());
             compositeDisposable.add(kioskViewModel.start().doOnError(this::onError).subscribe());
+            compositeDisposable.add(kioskViewModel.waiting().doOnError(this::onError).subscribe());
         }
 
         //===========廣告播放 設定===========
@@ -119,6 +126,12 @@ public class AdvertisementActivity extends AppCompatActivity {
                 .execute().subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::playAdvertisements));
+        //=================================
+
+        //=============P2p=================
+        Intent intent = new Intent(this, MessageService.class);
+        intent.putExtra("isOwner", kiosk instanceof InternetKiosk);
+        startService(intent);
         //=================================
 
     }
@@ -136,6 +149,7 @@ public class AdvertisementActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d("Test", "onResume");
         findViewById(R.id.fullscreen_content).setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -150,8 +164,9 @@ public class AdvertisementActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        Log.d("Test", "onPause");
         unregisterReceiver(receiver);
-        unregisterReceiver(messageReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
     }
 
     private void playAdvertisements(List<Advertisement> advertisements) {

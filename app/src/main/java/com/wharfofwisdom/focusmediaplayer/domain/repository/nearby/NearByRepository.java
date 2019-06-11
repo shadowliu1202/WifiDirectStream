@@ -56,6 +56,11 @@ public class NearByRepository implements SquadRepository {
     }
 
     @Override
+    public Completable announce(Mission mission) {
+        return Completable.complete();
+    }
+
+    @Override
     public Completable request(Mission mission) {
         return null;
     }

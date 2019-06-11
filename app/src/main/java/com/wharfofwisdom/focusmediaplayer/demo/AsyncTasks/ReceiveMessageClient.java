@@ -2,8 +2,11 @@ package com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CacheRepository;
@@ -76,22 +79,14 @@ public class ReceiveMessageClient extends AbstractReceiver {
                     .subscribeOn(Schedulers.io())
                     .subscribe();
         }
+        Intent in = new Intent();
+        in.putExtra("mission", values[0].getmText());
+        in.putExtra("from", values[0].getChatName());
+        in.setAction("NOW");
+        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
         Toast.makeText(mContext, values[0].getmText(), Toast.LENGTH_SHORT).show();
         Log.e("Test", "onProgressUpdate Client Receive" + values[0].getmText());
         Log.e("Test", "onProgressUpdate Client Receive" + values[0].getChatName());
         Log.e("Test", "onProgressUpdate Client Receive" + values[0].getFileName());
-    }
-
-    @SuppressWarnings("rawtypes")
-    public Boolean isActivityRunning(Class activityClass) {
-        ActivityManager activityManager = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningTaskInfo> tasks = activityManager.getRunningTasks(Integer.MAX_VALUE);
-
-        for (ActivityManager.RunningTaskInfo task : tasks) {
-            if (activityClass.getCanonicalName().equalsIgnoreCase(task.baseActivity.getClassName()))
-                return true;
-        }
-
-        return false;
     }
 }

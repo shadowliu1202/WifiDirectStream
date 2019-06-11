@@ -13,7 +13,6 @@ import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.net.wifi.p2p.nsd.WifiP2pServiceRequest;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageClient;
 import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageServer;
@@ -85,16 +84,21 @@ public class P2PRepository implements SquadRepository {
     }
 
     @Override
-    public Completable request(Mission mission) {
-        return sendToServer(mission);
+    public Completable announce(Mission mission) {
+        return sendToClient(mission);
     }
 
     private Completable sendToClient(Mission mission) {
         return Completable.fromAction(() -> {
             Message mes = new Message(Message.TEXT_MESSAGE, mission.message(), null, mission.mission());
-            Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
             new SendMessageServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
         });
+    }
+
+
+    @Override
+    public Completable request(Mission mission) {
+        return sendToServer(mission);
     }
 
     private Completable sendToServer(Mission mission) {

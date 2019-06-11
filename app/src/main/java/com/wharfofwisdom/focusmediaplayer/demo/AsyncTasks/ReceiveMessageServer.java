@@ -62,6 +62,9 @@ public class ReceiveMessageServer extends AbstractReceiver {
     protected void onProgressUpdate(Message... values) {
         super.onProgressUpdate(values);
         playNotification(mContext, values[0]);
+        Log.e("Test", "onProgressUpdate Server Receive" + values[0].getmText());
+        Log.e("Test", "onProgressUpdate Server Receive" + values[0].getChatName());
+        Log.e("Test", "onProgressUpdate Server Receive" + values[0].getFileName());
 
         //If the message contains a video or an audio, we saved this file to the external storage
         int type = values[0].getmType();

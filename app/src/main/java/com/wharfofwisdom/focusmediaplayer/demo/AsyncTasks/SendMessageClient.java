@@ -1,6 +1,7 @@
 package com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
 
@@ -28,6 +29,9 @@ public class SendMessageClient extends AsyncTask<Message, Message, Message> {
             socket.connect(new InetSocketAddress(mServerAddr, SERVER_PORT));
             OutputStream outputStream = socket.getOutputStream();
             new ObjectOutputStream(outputStream).writeObject(msg[0]);
+            Log.e("Test", "onProgressUpdate Client Receive" + msg[0].getmText());
+            Log.e("Test", "onProgressUpdate Client Receive" + msg[0].getChatName());
+            Log.e("Test", "onProgressUpdate Client Receive" + msg[0].getFileName());
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

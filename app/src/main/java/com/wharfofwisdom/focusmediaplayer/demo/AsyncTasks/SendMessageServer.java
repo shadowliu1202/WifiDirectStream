@@ -1,6 +1,7 @@
 package com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
 import com.wharfofwisdom.focusmediaplayer.demo.ServerInit;
@@ -46,6 +47,9 @@ public class SendMessageServer extends AsyncTask<Message, Message, Message> {
     @Override
     protected void onProgressUpdate(Message... values) {
         super.onProgressUpdate(values);
+        Log.e("Test", "onProgressUpdate Server Send" + values[0].getmText());
+        Log.e("Test", "onProgressUpdate Server Send" + values[0].getChatName());
+        Log.e("Test", "onProgressUpdate Server Send" + values[0].getFileName());
     }
 
     @Override

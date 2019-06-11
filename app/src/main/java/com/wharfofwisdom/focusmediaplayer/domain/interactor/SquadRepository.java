@@ -9,10 +9,11 @@ import io.reactivex.Flowable;
 import io.reactivex.Single;
 
 public interface SquadRepository {
-
     /**
-     *  Send Request To Leader
+     * Send Request To Leader
      */
+    Completable announce(Mission mission);
+
     Completable request(Mission mission);
 
     Flowable<Mission> waitCommand();

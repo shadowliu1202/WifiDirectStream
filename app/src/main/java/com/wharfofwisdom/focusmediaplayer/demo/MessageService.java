@@ -13,9 +13,6 @@ import com.wharfofwisdom.focusmediaplayer.presentation.AdvertisementActivity;
 
 public class MessageService extends Service {
     private static final String TAG = "MessageService";
-    public interface IOwnerService {
-        void changeOwner(boolean isOwner);
-    }
 
     @Override
     public IBinder onBind(Intent arg0) {
@@ -24,7 +21,8 @@ public class MessageService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (AdvertisementActivity.isMaster) {
+        boolean isOwner = intent.getBooleanExtra("isOwner",false);
+        if (isOwner) {
             Log.v(TAG, "Start the AsyncTask for the server to receive messages");
             new ReceiveMessageServer(getApplicationContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
         } else {
