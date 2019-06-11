@@ -21,12 +21,14 @@ public interface AdvertisementDao {
     @Query("SELECT id, `order` FROM AdEntity ORDER BY `order` DESC")
     Flowable<List<AdWithVideo>> getAdvertisements();
 
-
     @Query("SELECT * FROM VideoEntity WHERE adId IN(:adIds)")
     Flowable<List<VideoEntity>> getVideos(String[] adIds);
 
     @Query("SELECT * FROM VideoEntity WHERE adId IN(:adIds) AND filePath NOTNULL")
     Flowable<List<VideoEntity>> getDownloadedVideos(String[] adIds);
+
+    @Query("SELECT * FROM VideoEntity WHERE adId IN(:adIds) AND filePath ISNULL")
+    Flowable<List<VideoEntity>> getNotDownloadedVideos(String[] adIds);
 
     @Query("SELECT * FROM VideoEntity")
     Flowable<List<VideoEntity>> getDownloadedVideos();

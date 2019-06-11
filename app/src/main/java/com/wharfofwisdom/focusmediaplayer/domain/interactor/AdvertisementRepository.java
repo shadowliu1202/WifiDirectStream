@@ -9,4 +9,5 @@ import io.reactivex.Flowable;
 public interface AdvertisementRepository {
     Flowable<List<Advertisement>> getAdvertisements();
 
+
 }

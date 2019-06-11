@@ -1,12 +1,12 @@
 package com.wharfofwisdom.focusmediaplayer.domain.repository.db.mapper;
 
 import android.net.Uri;
-import android.text.TextUtils;
 
 import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.Video;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.entity.AdEntity;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.entity.AdWithVideo;
+import com.wharfofwisdom.focusmediaplayer.domain.repository.db.entity.VideoEntity;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -17,16 +17,10 @@ public class AdvertisementMapper {
         List<Advertisement> list = new ArrayList<>();
         int index = 0;
         for (AdWithVideo adEntity : adEntities) {
-            if (adEntity.videos.size() > 0) {
-                Video video = Video.builder()
-                        .id(adEntity.videos.get(0).id).index(adEntity.order).name("video")
-                        .url(Uri.fromFile(new File(adEntity.videos.get(0).filePath)).getPath())
-                        .build();
-                list.add(Advertisement.builder()
-                        .index(++index)
-                        .id(String.valueOf(index))
-                        .video(video).build());
-            }
+            list.add(Advertisement.builder()
+                    .index(++index)
+                    .id(String.valueOf(index))
+                    .video(adEntity.videos.size() > 0 ? convert(adEntity.videos.get(0)) : Video.EMPTY).build());
         }
         return list;
     }
@@ -36,8 +30,25 @@ public class AdvertisementMapper {
         for (Advertisement advertisement : advertisements) {
             adEntities.add(AdEntity.AdEntityBuilder.anAdEntity()
                     .withId(advertisement.id()).withOrder(advertisement.index())
-                    .withVideoId(advertisement.video().id()).withVideoUrl(advertisement.video().url().toString()).build());
+                    .withVideoId(advertisement.video().id())
+                    .withVideoUrl(advertisement.video().url())
+                    .build());
         }
         return adEntities;
+    }
+
+    private static Video convert(VideoEntity videoEntity) {
+        return Video.builder()
+                .id(videoEntity.id).name("video")
+                .url(Uri.fromFile(new File(videoEntity.filePath)).getPath())
+                .build();
+    }
+
+    public static List<Video> convertVideos(List<VideoEntity> videoEntities) {
+        List<Video> results = new ArrayList<>();
+        for (VideoEntity videoEntity : videoEntities) {
+            results.add(convert(videoEntity));
+        }
+        return results;
     }
 }

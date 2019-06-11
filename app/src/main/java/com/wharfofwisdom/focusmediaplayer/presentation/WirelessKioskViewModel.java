@@ -1,12 +1,13 @@
 package com.wharfofwisdom.focusmediaplayer.presentation;
 
-import android.util.Log;
-
 import androidx.lifecycle.ViewModel;
 
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.AdvertisementRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CacheRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
-import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.action.ReportPlayList;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.GetCachedAdvertisements;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.GetLackedVideos;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.mission.RequestLackedVideos;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.mission.RequestPlayList;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.mission.UpdatePlayList;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.squad.Report;
@@ -16,18 +17,19 @@ import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Completable;
-import io.reactivex.Flowable;
 import io.reactivex.subjects.BehaviorSubject;
 
 public class WirelessKioskViewModel extends ViewModel {
     private final SquadRepository squadRepository;
     private final CacheRepository cacheRepository;
+    private final AdvertisementRepository advertisementRepository;
     private final BehaviorSubject<Squad> squadBehavior = BehaviorSubject.create();
 
 
-    WirelessKioskViewModel(SquadRepository squadRepository, CacheRepository cacheRepository) {
+    WirelessKioskViewModel(SquadRepository squadRepository, CacheRepository cacheRepository, AdvertisementRepository advertisementRepository) {
         this.squadRepository = squadRepository;
         this.cacheRepository = cacheRepository;
+        this.advertisementRepository = advertisementRepository;
     }
 
     public void setSquad(Squad squad) {
@@ -37,18 +39,26 @@ public class WirelessKioskViewModel extends ViewModel {
     //附屬連網機-啟動順序
     Completable start() {
         //要求這禮拜的播放清單
-        return new Report(squadRepository, new RequestPlayList()).execute();
+        return report(new RequestPlayList());
     }
 
-    public Flowable<Mission> waiting() {
-        return squadBehavior.toFlowable(BackpressureStrategy.LATEST).switchMap(squad -> new Waiting(squadRepository).execute().flatMap(mission -> doMission(squad, mission)));
+    Completable waiting() {
+        return squadBehavior.toFlowable(BackpressureStrategy.LATEST)
+                .concatMapCompletable(squad -> new Waiting(squadRepository).execute().flatMapCompletable(mission -> doMission(squad, mission)))
+                .repeat();
     }
 
-    private Flowable<Mission> doMission(Squad squad, Mission mission) {
+    private Completable doMission(Squad squad, Mission mission) {
         if (mission instanceof UpdatePlayList) {
-            Log.d("test", "Get UpdatePlayList:" + mission.message());
+            return ((UpdatePlayList) mission).execute(cacheRepository)
+                    .andThen(new GetCachedAdvertisements(advertisementRepository).execute().firstElement())
+                    .flatMap(advertisements -> new GetLackedVideos(cacheRepository, advertisements).execute().firstElement())
+                    .flatMapCompletable(videos->report(new RequestLackedVideos(videos)));
         }
-        return Flowable.never();
+        return Completable.never();
     }
 
+    private Completable report(Mission mission) {
+        return new Report(squadRepository, mission).execute();
+    }
 }

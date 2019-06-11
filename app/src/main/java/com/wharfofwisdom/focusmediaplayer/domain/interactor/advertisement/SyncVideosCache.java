@@ -1,7 +1,6 @@
 package com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement;
 
 import android.net.Uri;
-import android.util.Log;
 
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.CacheRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.VideoRepository;
@@ -12,7 +11,6 @@ import java.util.List;
 
 import io.reactivex.Completable;
 import io.reactivex.CompletableSource;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 public class SyncVideosCache {

@@ -1,7 +1,5 @@
 package com.wharfofwisdom.focusmediaplayer.domain.model;
 
-import android.net.Uri;
-
 import androidx.annotation.Nullable;
 
 import com.google.auto.value.AutoValue;
@@ -10,15 +8,13 @@ import com.google.gson.TypeAdapter;
 
 @AutoValue
 public abstract class Video {
-    public static final Video DEFAULT = Video.builder().id("").index(0).name("").url("").build();
+    public static final Video EMPTY = Video.builder().id("").name("").url("").build();
 
     public abstract String id();
 
     public abstract String name();
 
     public abstract String url();
-
-    public abstract int index();
 
     public static Builder builder() {
         return new AutoValue_Video.Builder();
@@ -31,8 +27,6 @@ public abstract class Video {
         public abstract Builder name(String name);
 
         public abstract Builder url(String url);
-
-        public abstract Builder index(int index);
 
         public abstract Video build();
 

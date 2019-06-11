@@ -11,13 +11,11 @@ import com.wharfofwisdom.focusmediaplayer.domain.repository.db.entity.VideoEntit
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.mapper.AdvertisementMapper;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
-import io.reactivex.functions.Function;
 
 public class RoomRepository implements CacheRepository, AdvertisementRepository {
     private final AdvertisementDao advertisementDao;
@@ -44,12 +42,21 @@ public class RoomRepository implements CacheRepository, AdvertisementRepository 
     }
 
     @Override
+    public Flowable<List<Video>> getNotDownloadVideo(List<Advertisement> advertisements) {
+        String[] ads = new String[advertisements.size()];
+        for (int i = 0; i < advertisements.size(); i++) {
+            ads[i] = advertisements.get(i).id();
+        }
+        return advertisementDao.getNotDownloadedVideos(ads).map(AdvertisementMapper::convertVideos);
+    }
+
+    @Override
     public Flowable<List<Advertisement>> getNotDownloadAdvertisement(final List<Advertisement> advertisements) {
         String[] ads = new String[advertisements.size()];
         for (int i = 0; i < advertisements.size(); i++) {
             ads[i] = advertisements.get(i).id();
         }
-        return advertisementDao.getDownloadedVideos().map(videoEntities -> {
+        return advertisementDao.getNotDownloadedVideos(ads).map(videoEntities -> {
             Iterator<Advertisement> iterator = advertisements.iterator();
             while (iterator.hasNext()) {
                 Advertisement advertisement = iterator.next();

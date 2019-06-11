@@ -61,6 +61,7 @@ import java.util.concurrent.TimeUnit;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 public class AdvertisementActivity extends AppCompatActivity {
@@ -107,13 +108,13 @@ public class AdvertisementActivity extends AppCompatActivity {
             compositeDisposable.add(kioskViewModel.waiting().doOnError(this::onError).subscribe());
         } else {
             final SquadRepository squadRepository = p2pRepository;
-            final CacheRepository cacheRepository = new RoomRepository(this);
+            RoomRepository roomRepository = new RoomRepository(this);
             WirelessKioskViewModel kioskViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
                 @NonNull
                 @Override
                 @SuppressWarnings("unchecked")
                 public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-                    return (T) new WirelessKioskViewModel(squadRepository, cacheRepository);
+                    return (T) new WirelessKioskViewModel(squadRepository, roomRepository, roomRepository);
                 }
             }).get(WirelessKioskViewModel.class);
             kioskViewModel.setSquad(Follower.builder().name("follower").address("test").build());
@@ -125,6 +126,7 @@ public class AdvertisementActivity extends AppCompatActivity {
         initPlayer();
         compositeDisposable.add(new GetCachedAdvertisements(new RoomRepository(this))
                 .execute().subscribeOn(Schedulers.io())
+                .map(this::filterNoVideoAdvertisements)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::playAdvertisements));
         //=================================
@@ -135,6 +137,16 @@ public class AdvertisementActivity extends AppCompatActivity {
         startService(intent);
         //=================================
 
+    }
+
+    private List<Advertisement> filterNoVideoAdvertisements(List<Advertisement> advertisements) {
+        List<Advertisement> results = new ArrayList<>();
+        for (Advertisement advertisement : advertisements) {
+            if (!advertisement.video().equals(Video.EMPTY)) {
+                results.add(advertisement);
+            }
+        }
+        return results;
     }
 
     private void onError(Throwable throwable) {
