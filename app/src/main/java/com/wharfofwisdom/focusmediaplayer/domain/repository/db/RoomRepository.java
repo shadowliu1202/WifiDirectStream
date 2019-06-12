@@ -55,6 +55,21 @@ public class RoomRepository implements CacheRepository, AdvertisementRepository 
         });
     }
 
+    @Override
+    public Flowable<List<Advertisement>> getDownloadedAdvertisementAndVideo(String[] advertisementIds) {
+        return advertisementDao.getAdvertisements(advertisementIds).map(videoEntities -> {
+            List<Advertisement> videos = AdvertisementMapper.convert(videoEntities);
+            Iterator<Advertisement> iterator = videos.iterator();
+            while (iterator.hasNext()) {
+                Advertisement advertisement = iterator.next();
+                if (!isVideoExist(advertisement, videoEntities)) {
+                    iterator.remove();
+                }
+            }
+            return videos;
+        });
+    }
+
     private boolean isVideoExist(Advertisement advertisement, List<AdWithVideo> adWithVideos) {
         for (AdWithVideo adWithVideo : adWithVideos) {
             if (advertisement.id().equals(adWithVideo.id) && adWithVideo.videos.size() > 0) {

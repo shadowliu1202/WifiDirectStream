@@ -17,4 +17,6 @@ public interface CacheRepository {
 
     Flowable<List<Advertisement>> getNotDownloadAdvertisement(final List<Advertisement> advertisements);
 
+    Flowable<List<Advertisement>> getDownloadedAdvertisementAndVideo(final String[] advertisementIds);
+
 }

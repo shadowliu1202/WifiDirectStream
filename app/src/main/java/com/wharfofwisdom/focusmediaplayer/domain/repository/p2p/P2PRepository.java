@@ -17,6 +17,7 @@ import android.os.AsyncTask;
 import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageClient;
 import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageServer;
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
+import com.wharfofwisdom.focusmediaplayer.demo.Entities.MessageFactory;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.MissionFactory;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
@@ -85,16 +86,12 @@ public class P2PRepository implements SquadRepository {
 
     @Override
     public Completable announce(Mission mission) {
-        return sendToClient(mission);
+        return sendToClients(mission);
     }
 
-    private Completable sendToClient(Mission mission) {
-        return Completable.fromAction(() -> {
-            Message mes = new Message(Message.TEXT_MESSAGE, mission.message(), null, mission.mission());
-            new SendMessageServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
-        });
+    private Completable sendToClients(Mission mission) {
+        return Completable.fromAction(() -> new SendMessageServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, MessageFactory.create(mission)));
     }
-
 
     @Override
     public Completable request(Mission mission) {
@@ -108,27 +105,6 @@ public class P2PRepository implements SquadRepository {
             emitter.onComplete();
         }));
     }
-
-//    public void sendMessage(String message) {
-//        Message mes = new Message(Message.TEXT_MESSAGE, "Welcome", null, "Owner");
-//        mes.setChatName(message.);
-//        mes.setUser_record("Owner");
-//        Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
-//        new SendMessageServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
-//    }
-//
-//    private void sendFile(File file) {
-//        Message mes = new Message(Message.FILE_MESSAGE, "test", null, "Owner");
-//        MediaFile mediaFile = new MediaFile(this, file.getPath(), Message.FILE_MESSAGE);
-//        mes.setByteArray(mediaFile.fileToByteArray());
-//        mes.setFileName(mediaFile.getFileName());
-//        mes.setChatName("5915bd627ce91c3851f43c5e");
-//        mes.setmText("人生走馬燈篇");
-//        if (isMaster) {
-//            Log.e("test", "Message hydrated, start SendMessageServer AsyncTask");
-//            new SendMessageServer().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
-//        }
-//    }
 
     @Override
     public Flowable<Mission> waitCommand() {

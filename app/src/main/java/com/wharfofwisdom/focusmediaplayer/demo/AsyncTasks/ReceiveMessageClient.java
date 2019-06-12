@@ -74,10 +74,13 @@ public class ReceiveMessageClient extends AbstractReceiver {
         //If the message contains a video or an audio, we saved this file to the external storage
         int type = values[0].getmType();
         if (type == Message.AUDIO_MESSAGE || type == Message.VIDEO_MESSAGE || type == Message.FILE_MESSAGE || type == Message.DRAWING_MESSAGE) {
-            File file = values[0].saveByteArrayToFile(mContext);
-            repository.addVideoCache(file, values[0].getChatName(), values[0].getFileName())
-                    .subscribeOn(Schedulers.io())
-                    .subscribe();
+            if (values[0].getByteArray() != null) {
+                File file = values[0].saveByteArrayToFile(mContext);
+                repository.addVideoCache(file, values[0].getmText(), values[0].getChatName())
+                        .subscribeOn(Schedulers.io())
+                        .subscribe();
+            }
+
         }
         Intent in = new Intent();
         in.putExtra("message", values[0].getmText());

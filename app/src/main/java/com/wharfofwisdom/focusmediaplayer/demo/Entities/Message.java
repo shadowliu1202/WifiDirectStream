@@ -139,7 +139,7 @@ public class Message implements Serializable {
                 filePath = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES).getAbsolutePath() + "/" + fileName;
                 break;
             case Message.FILE_MESSAGE:
-                filePath = context.getExternalFilesDir(Environment.DIRECTORY_MUSIC).getAbsolutePath() + "/" + fileName;
+                filePath = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES).getAbsolutePath() + "/" + fileName;
                 break;
             case Message.DRAWING_MESSAGE:
                 filePath = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/" + fileName;

@@ -20,14 +20,11 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.offline.DownloadRequest;
-import com.google.android.exoplayer2.offline.DownloadService;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.util.Util;
 import com.wharfofwisdom.focusmediaplayer.DemoApplication;
 import com.wharfofwisdom.focusmediaplayer.R;
 import com.wharfofwisdom.focusmediaplayer.demo.ClientInit;
@@ -50,18 +47,13 @@ import com.wharfofwisdom.focusmediaplayer.domain.repository.cloud.CloudRepositor
 import com.wharfofwisdom.focusmediaplayer.domain.repository.db.RoomRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
-import com.wharfofwisdom.focusmediaplayer.presentation.service.DemoDownloadService;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 public class AdvertisementActivity extends AppCompatActivity {
@@ -73,7 +65,6 @@ public class AdvertisementActivity extends AppCompatActivity {
     private final IntentFilter intentFilter = new IntentFilter();
     private WifiP2PReceiver receiver;
     private BroadcastReceiver messageReceiver;
-    public static boolean isMaster = true;
     private Squad.POSITION squadPosition;
     private Kiosk kiosk;
     private InetAddress ownerAddress;
@@ -196,7 +187,6 @@ public class AdvertisementActivity extends AppCompatActivity {
         WifiP2pManager mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         WifiP2pManager.Channel mChannel = mManager.initialize(this, getMainLooper(), null);
         mManager.requestConnectionInfo(mChannel, info -> {
-            isMaster = info.isGroupOwner;
             ownerAddress = info.groupOwnerAddress;
             Log.d("test", "get:" + info.groupOwnerAddress + ":" + info.toString());
             if (info.isGroupOwner) {
@@ -208,49 +198,6 @@ public class AdvertisementActivity extends AppCompatActivity {
             }
         });
         return new P2PRepository(mManager, mChannel);
-    }
-
-//    public void sendMessage(String message, String identity) {
-//        if (kiosk instanceof InternetKiosk) {
-//            Message mes = new Message(Message.TEXT_MESSAGE, "Welcome", null, "Owner");
-//            mes.setUser_record("Owner");
-//            Log.e("Test", "Message hydrated, start SendMessageServer AsyncTask");
-//            new SendMessageServer(true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
-//        } else {
-//            Message mes = new Message(Message.TEXT_MESSAGE, "Banjo", null, "Client");
-//            mes.setUser_record("Client");
-//            Log.d("test", "sendMessage:" + ownerAddress);
-//            new SendMessageClient(this, ownerAddress).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
-//            Log.e("Test", "Message hydrated, start SendMessageClient AsyncTask");
-//        }
-//    }
-//
-//    private void sendFile(File file) {
-//        Message mes = new Message(Message.FILE_MESSAGE, "test", null, "Owner");
-//        MediaFile mediaFile = new MediaFile(this, file.getPath(), Message.FILE_MESSAGE);
-//        mes.setByteArray(mediaFile.fileToByteArray());
-//        mes.setFileName(mediaFile.getFileName());
-//        mes.setChatName("5915bd627ce91c3851f43c5e");
-//        mes.setmText("人生走馬燈篇");
-//        if (isMaster) {
-//            Log.e("test", "Message hydrated, start SendMessageServer AsyncTask");
-//            new SendMessageServer(true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mes);
-//        }
-//    }
-
-    private Single<Video> download(final Advertisement advertisement) {
-        DownloadService.sendAddDownload(this, DemoDownloadService.class,
-                new DownloadRequest(advertisement.video().id(),
-                        DownloadRequest.TYPE_PROGRESSIVE,
-                        Uri.parse(advertisement.video().url()),
-                        /* streamKeys= */ Collections.emptyList(),
-                        /* customCacheKey= */ null,
-                        Util.getUtf8Bytes(advertisement.video().name())),
-                /* foreground= */ false);
-        if (advertisement.id().equals("1")) {
-            return Single.just(advertisement.video()).delay(5, TimeUnit.SECONDS);
-        }
-        return Single.just(advertisement.video());
     }
 
     @Override

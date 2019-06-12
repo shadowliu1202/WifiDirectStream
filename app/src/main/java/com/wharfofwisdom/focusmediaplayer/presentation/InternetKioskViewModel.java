@@ -10,10 +10,15 @@ import com.wharfofwisdom.focusmediaplayer.domain.interactor.advertisement.SyncVi
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.CacheAdvertisements;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.GetAdvertisements;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.action.ReportPlayList;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.action.ReportVideos;
+import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.mission.RequestLackedVideos;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.mission.RequestPlayList;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.squad.Waiting;
+import com.wharfofwisdom.focusmediaplayer.domain.model.Advertisement;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.mission.Mission;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
+
+import java.util.List;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Completable;
@@ -57,6 +62,9 @@ class InternetKioskViewModel extends ViewModel {
     private Flowable<Mission> doMission(Squad squad, Mission mission) {
         if (mission instanceof RequestPlayList) {
             return new ReportPlayList(squadRepository, advertisementRepository).execute().andThen(Flowable.just(mission));
+        } else if (mission instanceof RequestLackedVideos) {
+            List<Advertisement> advertisementList = ((RequestLackedVideos) mission).getAdvertisements();
+            return new ReportVideos(squadRepository, cacheRepository, advertisementList).execute().andThen(Flowable.just(mission));
         }
         return Flowable.never();
     }
