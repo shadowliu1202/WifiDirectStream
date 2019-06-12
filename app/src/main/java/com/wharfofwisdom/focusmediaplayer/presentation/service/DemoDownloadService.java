@@ -24,7 +24,7 @@ import com.google.android.exoplayer2.scheduler.PlatformScheduler;
 import com.google.android.exoplayer2.ui.DownloadNotificationHelper;
 import com.google.android.exoplayer2.util.NotificationUtil;
 import com.google.android.exoplayer2.util.Util;
-import com.wharfofwisdom.focusmediaplayer.DemoApplication;
+import com.wharfofwisdom.focusmediaplayer.FocusMediaApplication;
 import com.wharfofwisdom.focusmediaplayer.R;
 
 import java.util.List;
@@ -57,7 +57,7 @@ public class DemoDownloadService extends DownloadService {
 
   @Override
   protected DownloadManager getDownloadManager() {
-    return ((DemoApplication) getApplication()).getDownloadManager();
+    return ((FocusMediaApplication) getApplication()).getDownloadManager();
   }
 
   @Override

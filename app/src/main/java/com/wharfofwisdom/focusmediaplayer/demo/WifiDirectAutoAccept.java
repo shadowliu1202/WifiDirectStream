@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 
+import android.annotation.SuppressLint;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
@@ -57,6 +58,7 @@ public class WifiDirectAutoAccept {
      * Construct a WifiDirectAutoAccept object using either an existing context or
      * an existing manager and channel.
      */
+    @SuppressLint("PrivateApi")
     private WifiDirectAutoAccept(Context context, WifiP2pManager m, WifiP2pManager.Channel c) {
 
         if (context != null && m == null) {

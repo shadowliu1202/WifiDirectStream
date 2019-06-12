@@ -25,7 +25,7 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
-import com.wharfofwisdom.focusmediaplayer.DemoApplication;
+import com.wharfofwisdom.focusmediaplayer.FocusMediaApplication;
 import com.wharfofwisdom.focusmediaplayer.R;
 import com.wharfofwisdom.focusmediaplayer.demo.ClientInit;
 import com.wharfofwisdom.focusmediaplayer.demo.MessageService;
@@ -209,7 +209,7 @@ public class AdvertisementActivity extends AppCompatActivity {
 
     @MainThread
     private void playVideoFromCache(List<Video> playListResponses) {
-        DataSource.Factory dataSourceFactory = ((DemoApplication) getApplication()).buildDataSourceFactory();
+        DataSource.Factory dataSourceFactory = ((FocusMediaApplication) getApplication()).buildDataSourceFactory();
         List<MediaSource> mediaSources = new ArrayList<>();
         for (Video playInfo : playListResponses) {
             mediaSources.add(new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(playInfo.url())));
