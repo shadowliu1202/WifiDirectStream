@@ -18,6 +18,7 @@ import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageClient;
 import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageServer;
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.Message;
 import com.wharfofwisdom.focusmediaplayer.demo.Entities.MessageFactory;
+import com.wharfofwisdom.focusmediaplayer.demo.WifiDirectAutoAccept;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.SquadRepository;
 import com.wharfofwisdom.focusmediaplayer.domain.interactor.kiosk.MissionFactory;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
@@ -42,8 +43,9 @@ public class P2PRepository implements SquadRepository {
     private final WifiP2pManager.Channel mChannel;
     private final WifiP2PReceiver receiver;
     private final BroadcastReceiver broadcastReceiver;
-    private PublishSubject<WifiP2pInfo> p2pInfoPublishSubject = PublishSubject.create();
-    private PublishSubject<Mission> missionPublishSubject = PublishSubject.create();
+    private final PublishSubject<WifiP2pInfo> p2pInfoPublishSubject = PublishSubject.create();
+    private final PublishSubject<Mission> missionPublishSubject = PublishSubject.create();
+    private final WifiDirectAutoAccept wifiDirectAutoAccept;
 
     public P2PRepository(WifiP2pManager mManager, WifiP2pManager.Channel mChannel) {
         this.mManager = mManager;
@@ -82,6 +84,8 @@ public class P2PRepository implements SquadRepository {
                 missionPublishSubject.onNext(MissionFactory.create(intent.getStringExtra("mission"), intent.getStringExtra("message")));
             }
         };
+        wifiDirectAutoAccept = new WifiDirectAutoAccept(mManager, mChannel);
+        wifiDirectAutoAccept.intercept(true);
     }
 
     @Override
