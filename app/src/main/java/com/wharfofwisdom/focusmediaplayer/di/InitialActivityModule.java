@@ -15,10 +15,10 @@ import dagger.Provides;
 @Module
 abstract class InitialActivityModule {
 
-    @Provides
-    WifiP2pManager provideWifiP2pManager(InitialActivity activity) {
-        return (WifiP2pManager) activity.getSystemService(Context.WIFI_P2P_SERVICE);
-    }
+//    @Provides
+//    WifiP2pManager provideWifiP2pManager(InitialActivity activity) {
+//        return (WifiP2pManager) activity.getSystemService(Context.WIFI_P2P_SERVICE);
+//    }
 //
 //    @Provides
 //    WifiP2pManager.Channel provideWifiP2pManagerChannel(WifiP2pManager mManager, Activity activity) {

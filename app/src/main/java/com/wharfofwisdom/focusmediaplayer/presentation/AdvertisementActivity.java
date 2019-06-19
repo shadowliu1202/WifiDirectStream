@@ -13,6 +13,8 @@ import android.view.View;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
@@ -77,7 +79,6 @@ public class AdvertisementActivity extends AppCompatActivity {
         kiosk = KioskFactory.create(this);
         squadPosition = (Squad.POSITION) getIntent().getSerializableExtra(SQUAD);
         //====== Wifi Direct 相關 設定======
-
         p2pRepository = startP2PConnection();
         receiver = p2pRepository.getReceiver();
         messageReceiver = p2pRepository.getBroadcastReceiver();
