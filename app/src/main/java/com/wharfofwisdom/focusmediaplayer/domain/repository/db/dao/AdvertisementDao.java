@@ -21,6 +21,7 @@ public interface AdvertisementDao {
     @Query("SELECT id, `order` FROM AdEntity ORDER BY `order` DESC")
     Flowable<List<AdWithVideo>> getAdvertisements();
 
+    @Transaction
     @Query("SELECT * FROM AdEntity WHERE id IN(:adIds)")
     Flowable<List<AdWithVideo>> getAdvertisements(String[] adIds);
 

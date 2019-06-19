@@ -23,29 +23,40 @@ import com.wharfofwisdom.focusmediaplayer.domain.repository.p2p.P2PRepository;
 import com.wharfofwisdom.focusmediaplayer.presentation.AdvertisementActivity;
 import com.wharfofwisdom.focusmediaplayer.presentation.p2p.WifiP2PReceiver;
 
+import javax.inject.Inject;
+
+import dagger.android.support.DaggerAppCompatActivity;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 
-public class InitialActivity extends AppCompatActivity {
+public class InitialActivity extends DaggerAppCompatActivity {
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
-    private WifiP2PReceiver receiver;
+//    private WifiP2PReceiver receiver;
     private final IntentFilter intentFilter = new IntentFilter();
+//    @Inject
+    ViewModelProvider.Factory factory;
+    FindSquadViewModel findSquadViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ActivityWelcomeBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_welcome);
-        Kiosk soldier = KioskFactory.create(this);
-        P2PRepository repository = initP2P();
-        receiver = repository.getReceiver();
-        FindSquadViewModel findSquadViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
-            @NonNull
-            @Override
-            @SuppressWarnings("unchecked")
-            public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-                return (T) new FindSquadViewModel(soldier, repository);
-            }
-        }).get(FindSquadViewModel.class);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+//        Kiosk soldier = KioskFactory.create(this);
+//        P2PRepository repository = initP2P();
+//        receiver = repository.getReceiver();
+//        FindSquadViewModel findSquadViewModel = ViewModelProviders.of(this, new ViewModelProvider.Factory() {
+//            @NonNull
+//            @Override
+//            @SuppressWarnings("unchecked")
+//            public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+//                return (T) new FindSquadViewModel(soldier, repository);
+//            }
+//        }).get(FindSquadViewModel.class);
+        findSquadViewModel = ViewModelProviders.of(this, factory).get(FindSquadViewModel.class);
         binding.setViewModel(findSquadViewModel);
         binding.setLifecycleOwner(this);
         hideSystemUI();
@@ -56,26 +67,22 @@ public class InitialActivity extends AppCompatActivity {
 
     //TODO
     private P2PRepository initP2P() {
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
         WifiP2pManager mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         WifiP2pManager.Channel mChannel = mManager.initialize(this, getMainLooper(), null);
         return new P2PRepository(mManager, mChannel);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        registerReceiver(receiver, intentFilter);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(receiver);
-    }
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//        registerReceiver(receiver, intentFilter);
+//    }
+//
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        unregisterReceiver(receiver);
+//    }
 
     private void hideSystemUI() {
         View decorView = getWindow().getDecorView();

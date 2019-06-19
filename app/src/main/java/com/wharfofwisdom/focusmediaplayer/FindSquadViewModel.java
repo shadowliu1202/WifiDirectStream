@@ -10,6 +10,8 @@ import com.wharfofwisdom.focusmediaplayer.domain.interactor.squad.SearchAndJoin;
 import com.wharfofwisdom.focusmediaplayer.domain.model.hardware.Kiosk;
 import com.wharfofwisdom.focusmediaplayer.domain.model.squad.position.Squad;
 
+import javax.inject.Inject;
+
 import io.reactivex.Single;
 
 public class FindSquadViewModel extends ViewModel {
@@ -17,6 +19,7 @@ public class FindSquadViewModel extends ViewModel {
     private final Kiosk kiosk;
     private final SquadRepository repository;
 
+    @Inject
     FindSquadViewModel(Kiosk soldier, SquadRepository p2PRepository) {
         this.kiosk = soldier;
         status.postValue("系統初始化...");
