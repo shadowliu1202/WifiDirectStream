@@ -2,12 +2,15 @@ package com.wharfofwisdom.focusmediaplayer.di;
 
 import com.wharfofwisdom.focusmediaplayer.InitialActivity;
 
+import javax.inject.Singleton;
+
 import dagger.Module;
 import dagger.android.ContributesAndroidInjector;
 
 @Module
 @SuppressWarnings("unused")
-abstract class ActivityBindingModule {
+public abstract class ActivityBindingModule {
+    @ActivityScope
     @ContributesAndroidInjector(modules = {InitialActivityModule.class})
-    abstract InitialActivity initialActivity();
+    public abstract InitialActivity initialActivity();
 }

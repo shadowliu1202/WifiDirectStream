@@ -13,6 +13,7 @@ import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.net.wifi.p2p.nsd.WifiP2pServiceRequest;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageClient;
 import com.wharfofwisdom.focusmediaplayer.demo.AsyncTasks.SendMessageServer;
@@ -53,12 +54,12 @@ public class P2PRepository implements SquadRepository {
         this.receiver = new WifiP2PReceiver(mChannel, mManager, new WifiP2PReceiver.EventListener() {
             @Override
             public void onErrors(Throwable throwable) {
-
+                throwable.printStackTrace();
             }
 
             @Override
             public void onPeersChanged(List<WifiP2pDevice> peers) {
-
+                Log.d("test", "onPeersChanged" + peers.size());
             }
 
             @Override
@@ -69,12 +70,12 @@ public class P2PRepository implements SquadRepository {
 
             @Override
             public void onDisconnected() {
-
+                Log.d("test", "onDisconnected");
             }
 
             @Override
             public void onInformation(String string) {
-
+                Log.d("test", "onInformation" + string);
             }
         });
 

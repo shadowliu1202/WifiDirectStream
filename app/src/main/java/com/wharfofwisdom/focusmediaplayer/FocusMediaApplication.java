@@ -45,7 +45,7 @@ import dagger.android.support.DaggerApplication;
 /**
  * Placeholder application to facilitate overriding Application methods for debugging and testing.
  */
-public class FocusMediaApplication extends DaggerApplication implements HasActivityInjector {
+public class FocusMediaApplication extends DaggerApplication{
 
     private static final String TAG = "com.wharfofwisdom.focusmediaplayer.DemoApplication";
     private static final String DOWNLOAD_ACTION_FILE = "actions";

@@ -20,7 +20,7 @@ public class FindSquadViewModel extends ViewModel {
     private final SquadRepository repository;
 
     @Inject
-    FindSquadViewModel(Kiosk soldier, SquadRepository p2PRepository) {
+    public FindSquadViewModel(Kiosk soldier, SquadRepository p2PRepository) {
         this.kiosk = soldier;
         status.postValue("系統初始化...");
         repository = p2PRepository;
